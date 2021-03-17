@@ -11,7 +11,7 @@ import PauseIcon from '@material-ui/icons/Pause';
 import ImageFilesTable from './ImageFilesTable';
 import VideoFilesTable from './VideoFilesTable';
 import IconButton from '@material-ui/core/IconButton';
-// import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -22,22 +22,26 @@ interface Props {
   value: number;
 }
 
-// const useStyles = makeStyles((theme: Theme) =>
-//   createStyles({
-//     progress: {
-//       marginTop: -20,
-//       height: 20,
-//       position: 'relative',
-//       width: 300
-//     },
-//     progressAmount: {
-//       display: 'block',
-//       height: '100%',
-//       backgroundColor: '#595',
-//       width: 0
-//     }
-//   })
-// );
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    hide: {
+      display: 'none'
+    },
+    pointer: {
+      cursor: 'pointer'
+    },
+    progress: {
+      cursor: 'pointer',
+      marginBottom: 20,
+      height: 15,
+      opacity: 0.4,
+      transition: '0.3s',
+      '&:hover': {
+        opacity: 1
+      }
+    }
+  })
+);
 
 function ValueLabelComponent(props: Props) {
   const { children, open, value } = props;
@@ -53,10 +57,12 @@ const maxVideoWidth = 1000;
 const maxVideoHeight = 500;
 
 const Edit = () => {
-  // const classes = useStyles();
-  const { selectedVideo } = useFiles();
+  const classes = useStyles();
+  const { selectedImage, selectedVideo } = useFiles();
+  const imageRef = React.useRef<HTMLImageElement | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const canvasRefImage = React.useRef<HTMLCanvasElement | null>(null);
   const [redValue, setRedValue] = React.useState<number>(100);
   const [greenValue, setGreenValue] = React.useState<number>(100);
   const [blueValue, setBlueValue] = React.useState<number>(100);
@@ -71,10 +77,8 @@ const Edit = () => {
   React.useEffect(() => {
     if (selectedVideo) {
       let number = Number(selectedVideo.length);
-      if (Number.isNaN(number)) {
-        console.log('jail bait');
-        return;
-      }
+      if (Number.isNaN(number)) return;
+
       setTempRangeValue([0, Number(selectedVideo.length)])
       setRangeValue([0, Number(selectedVideo.length)])
     }
@@ -106,9 +110,6 @@ const Edit = () => {
         if (video.currentTime < rangeValue[0] || video.currentTime > rangeValue[1]) {
           video.currentTime = rangeValue[0];
         } 
-        // else if (video.currentTime === rangeValue[0] && video.paused) {
-        //   video.play();
-        // }
       }
     }
 
@@ -195,6 +196,50 @@ const Edit = () => {
     }
   }, [selectedVideo, videoRef, canvasRef, redValue, greenValue, blueValue, brightness, opacity, greyscale]);
 
+  React.useEffect(() => {
+    let image = imageRef.current;
+    let canvas = canvasRefImage.current;
+
+    if (!image || !canvas) return;
+
+    let context = canvas.getContext("2d");
+
+    if (!context) return;
+
+    context.drawImage(image, 0, 0, image.width, image.height);
+    let frame = context.getImageData(0, 0, image.width, image.height);
+    let l = frame.data.length / 4;
+    
+    for (let i = 0; i < l; i++) {
+      let red = Math.min(frame.data[i * 4 + 0] * (redValue / 100), 255);
+      let green = Math.min(frame.data[i * 4 + 1] * (greenValue / 100), 255);
+      let blue = Math.min(frame.data[i * 4 + 2] * (blueValue / 100), 255);
+
+      red = Math.min(red * (brightness / 100), 255);
+      green = Math.min(green * (brightness / 100), 255);
+      blue = Math.min(blue * (brightness / 100), 255);
+
+      // background = [48,48,48]
+
+      red = Math.round(48 * (1 - (opacity / 100)) + red * (opacity / 100));
+      green = Math.round(48 * (1 - (opacity / 100)) + green * (opacity / 100));
+      blue = Math.round(48 * (1 - (opacity / 100)) + blue * (opacity / 100));
+
+      if (greyscale) {
+        let grey = (red + green + blue) / 3;
+        frame.data[i * 4 + 0] = grey;
+        frame.data[i * 4 + 1] = grey;
+        frame.data[i * 4 + 2] = grey;
+      } else {
+        frame.data[i * 4 + 0] = red;
+        frame.data[i * 4 + 1] = green;
+        frame.data[i * 4 + 2] = blue;
+      }
+    }
+    context.putImageData(frame, 0, 0);
+    
+  }, [selectedImage, canvasRefImage, canvasRef, redValue, greenValue, blueValue, brightness, opacity, greyscale]);
+
   const reset = () => {
     setRedValue(100);
     setGreenValue(100);
@@ -220,6 +265,19 @@ const Edit = () => {
     }
   }
 
+  const seek = (event: any) => {
+    let x = event.nativeEvent.layerX;
+    let video = videoRef.current;
+
+    if (!x || !video || Number.isNaN(video.duration)) return;
+
+    let seekTime = (x / video.width) * video.duration;
+
+    if (seekTime > rangeValue[0] && seekTime < rangeValue[1]) {
+      video.currentTime = seekTime;
+    }
+  }
+
   const handleRangeChange = () => {
     setRangeValue(tempRangeValue);
   }
@@ -237,10 +295,11 @@ const Edit = () => {
           <VideoFilesTable />
         </Grid>
       </Grid>
-      {selectedVideo && 
+      {(selectedImage || selectedVideo) && 
       <Grid item md={6} container alignItems="center" direction="column">
         <Grid item>
-          {<video ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} loop={true} preload='auto' style={{display: 'none'}}></video>}
+          {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxVideoWidth)} height={Math.min(selectedImage.height, maxVideoHeight)} alt={selectedImage.name}></img>}
+          {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} loop={true} preload='auto'></video>}
         </Grid>
         <Grid item>
           <ColorSlider title="Red Scale" value={redValue} setValue={setRedValue} min={0} max={200} />
@@ -264,12 +323,18 @@ const Edit = () => {
           <Button variant="contained" color="primary" onClick={reset}>Reset</Button>
         </Grid>
       </Grid>}
+      {selectedImage && 
+      <Grid item container justify="center" direction="column" alignItems="center">
+        <Grid item>
+          <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxVideoWidth)} height={Math.min(selectedImage.height, maxVideoHeight)}></canvas>
+        </Grid>
+      </Grid>
+      }
       {selectedVideo && 
       <Grid item container justify="center" direction="column" alignItems="center">
         <Grid item>
-          <canvas ref={canvasRef} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} onClick={playPause} style={{cursor: 'pointer'}}></canvas>
-          {/* <LinearProgress variant="determinate" color="secondary" value={progress} /> */}
-          <LinearProgress variant="buffer" color="secondary" value={progress} valueBuffer={buffer} />
+          <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} onClick={playPause}></canvas>
+          <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
           <Slider
             value={tempRangeValue}
             onChange={handleTempRangeChange}

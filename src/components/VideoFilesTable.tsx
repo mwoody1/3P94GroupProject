@@ -9,7 +9,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
-import { useFiles } from '../common/Context';
+import { useFiles, VideoFileMeta } from '../common/Context';
 import { humanFileSize } from '../common';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const VideoFilesTable = () => {
   const classes = useStyles();
-  const { videoFiles, setVideoFiles, selectedVideo, setSelectedVideo } = useFiles();
+  const { videoFiles, setVideoFiles, selectedVideo, setSelectedVideo, selectedImage, setSelectedImage } = useFiles();
 
   const handleRemove = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
     event.stopPropagation();
@@ -41,6 +41,13 @@ const VideoFilesTable = () => {
     }
     
     setVideoFiles(videoFiles => videoFiles.filter((_, i) => i !== index));
+  }
+
+  const handleSelect = (file: VideoFileMeta) => {
+    if (selectedImage) {
+      setSelectedImage(undefined);
+    }
+    setSelectedVideo(file);
   }
 
   if (videoFiles.length === 0) return (<div>No Videos</div>);
@@ -59,7 +66,7 @@ const VideoFilesTable = () => {
         </TableHead>
         <TableBody>
           {videoFiles.map((file, index) => (
-            <TableRow key={index} hover className={classes.clickable} onClick={() => setSelectedVideo(file)}>
+            <TableRow key={index} hover className={classes.clickable} onClick={() => handleSelect(file)}>
               <TableCell component="th" scope="row">
                 <IconButton onClick={(e) => handleRemove(e, index)}>
                   <DeleteForeverIcon />

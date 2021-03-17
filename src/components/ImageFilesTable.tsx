@@ -9,7 +9,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
-import { useFiles } from '../common/Context';
+import { ImageFileMeta, useFiles } from '../common/Context';
 import { humanFileSize } from '../common';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -21,17 +21,34 @@ const useStyles = makeStyles((theme: Theme) =>
     table: {
       // minWidth: 650,
     },
+    clickable: {
+      cursor: 'pointer'
+    }
   })
 );
 
 const ImageFilesTable = () => {
   const classes = useStyles();
-  const { imageFiles, setImageFiles } = useFiles();
+  const { imageFiles, setImageFiles, selectedImage, setSelectedImage, selectedVideo, setSelectedVideo } = useFiles();
 
-  const handleRemove = (index: number) => {
+  const handleRemove = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
+    event.stopPropagation();
+    if (selectedImage) {
+      let selectedImageIndex = imageFiles.findIndex(file => file.name === selectedImage.name);
+      if (index === selectedImageIndex) {
+        setSelectedImage(undefined);
+      }
+    }
     setImageFiles(imageFiles => imageFiles.filter((_, i) => i !== index))
   }
   
+  const handleSelect = (file: ImageFileMeta) => {
+    if (selectedVideo) {
+      setSelectedVideo(undefined);
+    }
+    setSelectedImage(file);
+  }
+
   if (imageFiles.length === 0) return (<div>No Images</div>);
 
   return (
@@ -47,9 +64,9 @@ const ImageFilesTable = () => {
         </TableHead>
         <TableBody>
           {imageFiles.map((file, index) => (
-            <TableRow key={index} hover>
+            <TableRow key={index} hover className={classes.clickable} onClick={() => handleSelect(file)}>
               <TableCell component="th" scope="row">
-                <IconButton onClick={() => handleRemove(index)}>
+                <IconButton onClick={(e) => handleRemove(e, index)}>
                   <DeleteForeverIcon />
                 </IconButton>
                 {file.name}

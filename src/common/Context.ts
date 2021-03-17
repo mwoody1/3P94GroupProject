@@ -15,10 +15,6 @@ export interface VideoFileMeta extends FileMeta {
   length: string
 }
 
-// export interface SelectedVideoFileMeta extends VideoFileMeta {
-//   updatedSrc: string
-// }
-
 type FileMeta = {
   name: string
   size: number
@@ -30,10 +26,12 @@ type Files = {
   audioFiles: AudioFileMeta[]
   imageFiles: ImageFileMeta[]
   videoFiles: VideoFileMeta[]
+  selectedImage?: ImageFileMeta
   selectedVideo?: VideoFileMeta
   setAudioFiles: React.Dispatch<React.SetStateAction<AudioFileMeta[]>>
   setImageFiles: React.Dispatch<React.SetStateAction<ImageFileMeta[]>>
   setVideoFiles: React.Dispatch<React.SetStateAction<VideoFileMeta[]>>
+  setSelectedImage: React.Dispatch<React.SetStateAction<ImageFileMeta | undefined>>
   setSelectedVideo: React.Dispatch<React.SetStateAction<VideoFileMeta | undefined>>
 }
 
@@ -44,32 +42,9 @@ export const files = {
   setAudioFiles: () => {},
   setImageFiles: () => {},
   setVideoFiles: () => {},
+  setSelectedImage: () => {},
   setSelectedVideo: () => {}
 }
 
 export const FilesContext = React.createContext<Files>(files);
 export const useFiles = () => React.useContext(FilesContext);
-
-
-// import React from 'react';
-
-// type Files = {
-//   audioFiles: File[]
-//   imageFiles: File[]
-//   videoFiles: File[]
-//   setAudioFiles: React.Dispatch<React.SetStateAction<File[]>>
-//   setImageFiles: React.Dispatch<React.SetStateAction<File[]>>
-//   setVideoFiles: React.Dispatch<React.SetStateAction<File[]>>
-// }
-
-// export const files = {
-//   audioFiles: [],
-//   imageFiles: [],
-//   videoFiles: [],
-//   setAudioFiles: () => {},
-//   setImageFiles: () => {},
-//   setVideoFiles: () => {}
-// }
-
-// export const FilesContext = React.createContext<Files>(files);
-// export const useFiles = () => React.useContext(FilesContext);
