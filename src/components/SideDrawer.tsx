@@ -10,7 +10,7 @@ import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-// import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom';
+import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
@@ -19,6 +19,8 @@ import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
 import Backdrop from '../common/Backdrop';
 import { convertHexToRGBA, fileCallbackToPromise } from '../common';
 import ListSubheader from '@material-ui/core/ListSubheader';
+import HomeIcon from '@material-ui/icons/Home';
+import HelpIcon from '@material-ui/icons/Help';
 import { AudioFileMeta, ImageFileMeta, useFiles, VideoFileMeta } from '../common/Context';
 
 
@@ -44,24 +46,6 @@ const useStyles = makeStyles((theme: Theme) =>
     root: {
       display: 'flex',
     },
-    // appBar: {
-    //   [theme.breakpoints.up('md')]: {
-    //     width: `calc(100% - ${drawerWidth}px)`,
-    //     marginLeft: drawerWidth,
-    //   },
-    // },
-    // menuButton: {
-    //   marginRight: theme.spacing(2),
-    //   [theme.breakpoints.up('md')]: {
-    //     display: 'none',
-    //   },
-    // },
-    // drawer: {
-    //   [theme.breakpoints.up('md')]: {
-    //     width: drawerWidth,
-    //     flexShrink: 0,
-    //   },
-    // },
     appBar: {
       [theme.breakpoints.up('lg')]: {
         width: `calc(100% - ${drawerWidth}px)`,
@@ -98,7 +82,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     input: {
       display: 'none',
-    },
+    }
   }),
 );
 
@@ -106,33 +90,31 @@ type SideDrawerProps = {
   children: ReactNode
 }
 
-// interface ListItemLinkProps {
-//   icon?: React.ReactElement;
-//   primary: string;
-//   to: string;
-//   onClick: () => void;
-// }
+interface ListItemLinkProps {
+  icon?: React.ReactElement;
+  primary: string;
+  to: string;
+  onClick: () => void;
+}
 
-// function ListItemLink(props: ListItemLinkProps) {
-//   const { icon, primary, to, onClick } = props;
+function ListItemLink(props: ListItemLinkProps) {
+  const { icon, primary, to, onClick } = props;
 
-//   const renderLink = React.useMemo(
-//     () =>
-//       React.forwardRef<any, Omit<RouterLinkProps, 'to'>>((itemProps, ref) => (
-//         <RouterLink to={to} ref={ref} {...itemProps} />
-//       )),
-//     [to],
-//   );
+  const renderLink = React.useMemo(
+    () =>
+      React.forwardRef<any, Omit<RouterLinkProps, 'to'>>((itemProps, ref) => (
+        <RouterLink to={to} ref={ref} {...itemProps} />
+      )),
+    [to],
+  );
 
-//   return (
-//     <li>
-//       <ListItem button component={renderLink} onClick={onClick}>
-//         {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
-//         <ListItemText primary={primary} />
-//       </ListItem>
-//     </li>
-//   );
-// }
+  return (
+    <ListItem button component={renderLink} onClick={onClick}>
+      {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
+      <ListItemText primary={primary} />
+    </ListItem>
+  );
+}
 
 const SideDrawer = ({ children }: SideDrawerProps) => {
   const classes = useStyles();
@@ -214,16 +196,13 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
     <>
       <div className={classes.toolbar} />
       <Divider />
+      <ListItemLink to="/" primary="Home" icon={<HomeIcon />} onClick={() => setMobileOpen(false)} />
+      <Divider />
       <List
         subheader={<ListSubheader component="div" id="nested-list-subheader">
           Upload Files
         </ListSubheader>}
       >
-        {/* <ListItemLink to="/" primary="Home" icon={<HomeIcon />} onClick={() => setMobileOpen(false)} />
-        <ListItemLink to="/users" primary="Users" icon={<PeopleIcon />} onClick={() => setMobileOpen(false)} />
-        <ListItemLink to="/dealers" primary="Dealers" icon={<BusinessIcon />} onClick={() => setMobileOpen(false)} />
-        <ListItemLink to="/plans" primary="Plans" icon={<ViewIcon />} onClick={() => setMobileOpen(false)} />
-        <ListItemLink to="/vehicle-makes" primary="Vehicle Makes" icon={<DirectionsCarIcon />} onClick={() => setMobileOpen(false)} /> */}
         <input
           accept="audio/*"
           className={classes.input}
@@ -274,9 +253,7 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
         </label>
       </List>
       <Divider />
-      {/* <List>
-        <ListItemLink to="/" primary="Log Out" icon={<ExitIcon />} onClick={() => null} />
-      </List> */}
+      <ListItemLink to="/help" primary="Help" icon={<HelpIcon />} onClick={() => setMobileOpen(false)} />
     </>
   );
 

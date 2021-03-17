@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     progress: {
       cursor: 'pointer',
-      marginBottom: 20,
+      marginBottom: theme.spacing(1),
       height: 15,
       opacity: 0.4,
       transition: '0.3s',
@@ -53,8 +53,8 @@ function ValueLabelComponent(props: Props) {
   );
 }
 
-const maxVideoWidth = 1000;
-const maxVideoHeight = 500;
+const maxMediaDisplayWidth = 1000;
+const maxMediaDisplayHeight = 500;
 
 const Edit = () => {
   const classes = useStyles();
@@ -298,8 +298,8 @@ const Edit = () => {
       {(selectedImage || selectedVideo) && 
       <Grid item md={6} container alignItems="center" direction="column">
         <Grid item>
-          {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxVideoWidth)} height={Math.min(selectedImage.height, maxVideoHeight)} alt={selectedImage.name}></img>}
-          {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} loop={true} preload='auto'></video>}
+          {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
+          {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto'></video>}
         </Grid>
         <Grid item>
           <ColorSlider title="Red Scale" value={redValue} setValue={setRedValue} min={0} max={200} />
@@ -326,14 +326,14 @@ const Edit = () => {
       {selectedImage && 
       <Grid item container justify="center" direction="column" alignItems="center">
         <Grid item>
-          <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxVideoWidth)} height={Math.min(selectedImage.height, maxVideoHeight)}></canvas>
+          <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
         </Grid>
       </Grid>
       }
       {selectedVideo && 
       <Grid item container justify="center" direction="column" alignItems="center">
         <Grid item>
-          <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxVideoWidth)} height={Math.min(selectedVideo.height, maxVideoHeight)} onClick={playPause}></canvas>
+          <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
           <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
           <Slider
             value={tempRangeValue}
