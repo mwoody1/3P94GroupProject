@@ -9,8 +9,11 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
-import { useFiles } from '../common/Context';
-import { humanFileSize } from '../common';
+import LibraryMusicIcon from '@material-ui/icons/LibraryMusic';
+import { AudioFileMeta, useProject } from '../common/Context';
+import { fileCallbackToPromise, humanFileSize } from '../common';
+import Button from '@material-ui/core/Button';
+import { useSnackbar } from 'notistack';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -18,52 +21,99 @@ const useStyles = makeStyles((theme: Theme) =>
       margin: theme.spacing(1),
       maxHeight: 160
     },
-    table: {
-      // minWidth: 650,
+    button: {
+      marginLeft: theme.spacing(1)
     },
+    input: {
+      display: 'none'
+    }
   })
 );
 
 const AudioFilesTable = () => {
   const classes = useStyles();
-  const { audioFiles, setAudioFiles } = useFiles();
+  const { enqueueSnackbar } = useSnackbar();
+  const { audioFiles, setAudioFiles } = useProject();
 
+  const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    let files = event.target.files;
+
+    if (!files) return;
+    
+    let newAudioFiles = await Promise.all(Array.from(files).map(async file => {
+      let src = URL.createObjectURL(file);
+      let fileMeta: AudioFileMeta;
+      let audio = document.createElement('audio');
+
+      audio.src = src;
+      await fileCallbackToPromise(audio);
+     
+      fileMeta = { name: file.name, size: file.size, type: file.type, src, length: audio.duration.toString()};
+      
+      return fileMeta;
+    }));
+
+    event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
+    enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
+    setAudioFiles(audioFiles => audioFiles.concat(newAudioFiles));
+  };
+  
   const handleRemove = (index: number) => {
+    enqueueSnackbar(`${audioFiles[index].name} removed.`, { variant: 'info' });
     setAudioFiles(audioFiles => audioFiles.filter((_, i) => i !== index))
   }
 
-  if (audioFiles.length === 0) return (<div>No Audio</div>);
-
   return (
-    <TableContainer className={classes.root} component={Paper}>
-      <Table stickyHeader className={classes.table} size="small" aria-label="a dense table">
-        <TableHead>
-          <TableRow>
-            <TableCell>Audio Name</TableCell>
-            <TableCell align="right">Length</TableCell>
-            <TableCell align="right">Size</TableCell>
-            <TableCell>Preview</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {audioFiles.map((file, index) => (
-            <TableRow hover key={index}>
-              <TableCell component="th" scope="row">
-                <IconButton onClick={() => handleRemove(index)}>
-                  <DeleteForeverIcon />
-                </IconButton>
-                {file.name}
-              </TableCell>
-              <TableCell align="right">{file.length}</TableCell>
-              <TableCell align="right">{humanFileSize(file.size)}</TableCell>
-              <TableCell>
-                <audio src={file.src} controls></audio>
-              </TableCell>
+    <>
+      <input
+        accept="audio/*"
+        className={classes.input}
+        id="audio-import"
+        multiple
+        type="file"
+        onChange={(e) => handleAudioUpload(e)}
+      />
+      <label htmlFor="audio-import">
+        <Button
+          className={classes.button}
+          component="span"
+          fullWidth
+          startIcon={<LibraryMusicIcon />}>
+          Add Audio
+        </Button>
+      </label>
+      {audioFiles.length > 0 &&
+      <TableContainer className={classes.root} component={Paper}>
+        <Table stickyHeader size="small" aria-label="a dense table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Audio Name</TableCell>
+              <TableCell align="right">Length</TableCell>
+              <TableCell align="right">Size</TableCell>
+              <TableCell>Preview</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {audioFiles.map((file, index) => (
+              <TableRow key={index}>
+                <TableCell component="th" scope="row">
+                  <IconButton onClick={() => handleRemove(index)}>
+                    <DeleteForeverIcon />
+                  </IconButton>
+                  {file.name}
+                </TableCell>
+                <TableCell align="right">{file.length}</TableCell>
+                <TableCell align="right">{humanFileSize(file.size)}</TableCell>
+                <TableCell>
+                  <audio src={file.src} controls></audio>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      }
+    </>
   );
 }
 

@@ -3,7 +3,7 @@ import Switch from '@material-ui/core/Switch';
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-import { useFiles } from '../common/Context';
+import { useProject } from '../common/Context';
 import AudioFilesTable from './AudioFilesTable';
 import ColorSlider from './ColorSlider';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -15,6 +15,9 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
+import { useSnackbar } from 'notistack';
+import VideoExportDialog from './VideoExportDialog';
+import ImageExportDialog from './ImageExportDialog';
 
 interface Props {
   children: React.ReactElement;
@@ -58,7 +61,8 @@ const maxMediaDisplayHeight = 500;
 
 const Edit = () => {
   const classes = useStyles();
-  const { selectedImage, selectedVideo } = useFiles();
+  const { enqueueSnackbar } = useSnackbar();
+  const { selectedImage, selectedVideo } = useProject();
   const imageRef = React.useRef<HTMLImageElement | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
@@ -73,6 +77,8 @@ const Edit = () => {
   const [buffer, setBuffer] = React.useState(0);
   const [tempRangeValue, setTempRangeValue] = React.useState<number[]>([0,100]);
   const [rangeValue, setRangeValue] = React.useState<number[]>([0,100]);
+  const [imageExportOpen, setImageExportOpen] = React.useState(false);
+  const [videoExportOpen, setVideoExportOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (selectedVideo) {
@@ -283,85 +289,97 @@ const Edit = () => {
   }
 
   return (
-    <Grid container justify="space-between" spacing={2}>
-      <Grid item md={6} container direction="column">
-        <Grid item>
-          <AudioFilesTable />
+    <>
+      <Grid container justify="space-between" spacing={2}>
+        <Grid item md={6} container direction="column">
+          <Grid item>
+            <AudioFilesTable />
+          </Grid>
+          <Grid item>
+            <ImageFilesTable />
+          </Grid>
+          <Grid item>
+            <VideoFilesTable />
+          </Grid>
         </Grid>
-        <Grid item>
-          <ImageFilesTable />
+        {(selectedImage || selectedVideo) && 
+        <Grid item md={6} container alignItems="center" direction="column">
+          <Grid item>
+            {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
+            {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto'></video>}
+          </Grid>
+          <Grid item>
+            <ColorSlider title="Red Scale" value={redValue} setValue={setRedValue} min={0} max={200} />
+            <ColorSlider title="Green Scale" value={greenValue} setValue={setGreenValue} min={0} max={200} />
+            <ColorSlider title="Blue Scale" value={blueValue} setValue={setBlueValue} min={0} max={200} />
+            <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
+            <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={greyscale}
+                  onChange={handleGreyscaleChange}
+                  name="greyScale"
+                  color="primary"
+                />
+              }
+              label="Greyscale"
+            />
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="primary" onClick={reset}>Reset</Button>
+          </Grid>
+        </Grid>}
+        {selectedImage && 
+        <Grid item container justify="center" direction="column" alignItems="center">
+          <Grid item>
+            <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
+          </Grid>
+          <Grid container justify="space-evenly">
+            <Button id="save-project" variant="contained" onClick={() => enqueueSnackbar('Project saved', { variant: 'success' })}>Save</Button>
+            <Button id="export-project" variant="contained" onClick={() => setImageExportOpen(true)}>Export</Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <VideoFilesTable />
+        }
+        {selectedVideo && 
+        <Grid item container justify="center" direction="column" alignItems="center">
+          <Grid item>
+            <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
+            <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
+            <Slider
+              value={tempRangeValue}
+              onChange={handleTempRangeChange}
+              onChangeCommitted={handleRangeChange}
+              valueLabelDisplay="on"
+              valueLabelFormat={(x: number) => {
+                if (Number.isNaN(x)) return '00:00:00';
+                return new Date(x * 1000).toISOString().substr(11, 8)
+              }}
+              ValueLabelComponent={ValueLabelComponent}
+              aria-labelledby="range-slider"
+              max={videoRef.current?.duration}
+            />
+          </Grid>
+          <Grid item>
+            {videoRef.current?.paused ? 
+            <IconButton onClick={() => videoRef.current?.play()}>
+              <PlayArrowIcon />
+            </IconButton>
+            :
+            <IconButton onClick={() => videoRef.current?.pause()}>
+              <PauseIcon />
+            </IconButton>}
+          </Grid>
+          <Grid container justify="space-evenly">
+            <Button id="save-project" variant="contained" onClick={() => enqueueSnackbar('Project saved', { variant: 'success' })}>Save</Button>
+            <Button id="export-project" variant="contained" onClick={() => setVideoExportOpen(true)}>Export</Button>
+          </Grid>
         </Grid>
+        }
       </Grid>
-      {(selectedImage || selectedVideo) && 
-      <Grid item md={6} container alignItems="center" direction="column">
-        <Grid item>
-          {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
-          {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto'></video>}
-        </Grid>
-        <Grid item>
-          <ColorSlider title="Red Scale" value={redValue} setValue={setRedValue} min={0} max={200} />
-          <ColorSlider title="Green Scale" value={greenValue} setValue={setGreenValue} min={0} max={200} />
-          <ColorSlider title="Blue Scale" value={blueValue} setValue={setBlueValue} min={0} max={200} />
-          <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
-          <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={greyscale}
-                onChange={handleGreyscaleChange}
-                name="greyScale"
-                color="primary"
-              />
-            }
-            label="Greyscale"
-          />
-        </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary" onClick={reset}>Reset</Button>
-        </Grid>
-      </Grid>}
-      {selectedImage && 
-      <Grid item container justify="center" direction="column" alignItems="center">
-        <Grid item>
-          <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
-        </Grid>
-      </Grid>
-      }
-      {selectedVideo && 
-      <Grid item container justify="center" direction="column" alignItems="center">
-        <Grid item>
-          <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
-          <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
-          <Slider
-            value={tempRangeValue}
-            onChange={handleTempRangeChange}
-            onChangeCommitted={handleRangeChange}
-            valueLabelDisplay="on"
-            valueLabelFormat={(x: number) => {
-              if (Number.isNaN(x)) return '00:00:00';
-              return new Date(x * 1000).toISOString().substr(11, 8)
-            }}
-            ValueLabelComponent={ValueLabelComponent}
-            aria-labelledby="range-slider"
-            max={videoRef.current?.duration}
-          />
-        </Grid>
-        <Grid item>
-          {videoRef.current?.paused ? 
-          <IconButton onClick={() => videoRef.current?.play()}>
-            <PlayArrowIcon />
-          </IconButton>
-          :
-          <IconButton onClick={() => videoRef.current?.pause()}>
-            <PauseIcon />
-          </IconButton>}
-        </Grid>
-      </Grid>
-      }
-    </Grid>
+      {selectedImage && <ImageExportDialog open={imageExportOpen} setOpen={setImageExportOpen} selectedImage={selectedImage} />}
+      {selectedVideo && <VideoExportDialog open={videoExportOpen} setOpen={setVideoExportOpen} selectedVideo={selectedVideo} />}
+    </>
   );
 }
 

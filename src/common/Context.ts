@@ -22,12 +22,14 @@ type FileMeta = {
   type: string
 }
 
-type Files = {
+type Project = {
+  name: string
   audioFiles: AudioFileMeta[]
   imageFiles: ImageFileMeta[]
   videoFiles: VideoFileMeta[]
   selectedImage?: ImageFileMeta
   selectedVideo?: VideoFileMeta
+  setName: React.Dispatch<React.SetStateAction<string>>
   setAudioFiles: React.Dispatch<React.SetStateAction<AudioFileMeta[]>>
   setImageFiles: React.Dispatch<React.SetStateAction<ImageFileMeta[]>>
   setVideoFiles: React.Dispatch<React.SetStateAction<VideoFileMeta[]>>
@@ -35,10 +37,12 @@ type Files = {
   setSelectedVideo: React.Dispatch<React.SetStateAction<VideoFileMeta | undefined>>
 }
 
-export const files = {
+export const projectDefaults: Project = {
+  name: 'New Project',
   audioFiles: [],
   imageFiles: [],
   videoFiles: [],
+  setName: () => {},
   setAudioFiles: () => {},
   setImageFiles: () => {},
   setVideoFiles: () => {},
@@ -46,5 +50,5 @@ export const files = {
   setSelectedVideo: () => {}
 }
 
-export const FilesContext = React.createContext<Files>(files);
-export const useFiles = () => React.useContext(FilesContext);
+export const ProjectContext = React.createContext<Project>(projectDefaults);
+export const useProject = () => React.useContext(ProjectContext);

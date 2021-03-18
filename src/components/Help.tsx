@@ -18,7 +18,7 @@ const Help = () => {
       </Grid>
       <Grid item>
         <Typography variant="body1" gutterBottom>
-          Audio, image, and video files can be uploaded by clicking the appropriate option in the side menu and selecting the file(s). Accepted formats for each file type are listed below.
+          Audio, image, and video files can be uploaded by clicking the appropriate button or hotkey on the home page and selecting the file(s). Accepted formats for each file type are listed below.
         </Typography>
       </Grid>
       <Grid item>
@@ -35,8 +35,21 @@ const Help = () => {
       <Divider />
       <Grid item>
         <Typography variant="h5" gutterBottom>
+          How can I remove media?
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography variant="body1" gutterBottom>
+          Each media file shown in the tables has a delete button (the trashcan icon) located on the far left. Clicking this will remove the file.
+        </Typography>
+      </Grid>
+      <Divider />
+      <Grid item>
+        <Typography variant="h5" gutterBottom>
           What can I do after I upload?
         </Typography>
+      </Grid>
+      <Grid item>
         <Typography variant="body1" gutterBottom>
           After uploading, the media will appear on the main page with information about each file and a preview. Image and video files can be selected from this list by clicking on them. 
           They will appear below, along with sliders that can adjust the scales of each color (red, green, blue), brightness, opacity, and a toggle for greyscale.

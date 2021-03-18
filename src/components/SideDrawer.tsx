@@ -14,14 +14,22 @@ import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-d
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import ImageIcon from '@material-ui/icons/Image';
-import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
+import AddIcon from '@material-ui/icons/Add';
+import FolderIcon from '@material-ui/icons/Folder';
+import EditIcon from '@material-ui/icons/Edit';
+import SaveIcon from '@material-ui/icons/Save';
+import CancelIcon from '@material-ui/icons/Cancel';
 import Backdrop from '../common/Backdrop';
-import { convertHexToRGBA, fileCallbackToPromise } from '../common';
+import { convertHexToRGBA } from '../common';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import HomeIcon from '@material-ui/icons/Home';
+import KeyboardIcon from '@material-ui/icons/Keyboard';
 import HelpIcon from '@material-ui/icons/Help';
-import { AudioFileMeta, ImageFileMeta, useFiles, VideoFileMeta } from '../common/Context';
+import { useProject } from '../common/Context';
+import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
+import NewProjectDialog from './NewProjectDialog';
+import OpenProjectDialog from './OpenProjectDialog';
 
 
 const drawerWidth = 240;
@@ -70,19 +78,15 @@ const useStyles = makeStyles((theme: Theme) =>
     title: {
       flexGrow: 1,
     },
+    rename: {
+      backgroundColor: theme.palette.background.default
+    },
     // necessary for content to be below app bar
     toolbar: theme.mixins.toolbar,
     content: {
       flexGrow: 1,
-      // backgroundColor: theme.palette.background.default,
       padding: theme.spacing(3),
     },
-    nested: {
-      paddingLeft: theme.spacing(4),
-    },
-    input: {
-      display: 'none',
-    }
   }),
 );
 
@@ -91,6 +95,7 @@ type SideDrawerProps = {
 }
 
 interface ListItemLinkProps {
+  id?: string
   icon?: React.ReactElement;
   primary: string;
   to: string;
@@ -98,7 +103,7 @@ interface ListItemLinkProps {
 }
 
 function ListItemLink(props: ListItemLinkProps) {
-  const { icon, primary, to, onClick } = props;
+  const { id, icon, primary, to, onClick } = props;
 
   const renderLink = React.useMemo(
     () =>
@@ -109,7 +114,7 @@ function ListItemLink(props: ListItemLinkProps) {
   );
 
   return (
-    <ListItem button component={renderLink} onClick={onClick}>
+    <ListItem id={id} button component={renderLink} onClick={onClick}>
       {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
       <ListItemText primary={primary} />
     </ListItem>
@@ -118,142 +123,62 @@ function ListItemLink(props: ListItemLinkProps) {
 
 const SideDrawer = ({ children }: SideDrawerProps) => {
   const classes = useStyles();
+  const { name, setName } = useProject();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
-  const { setAudioFiles, setImageFiles, setVideoFiles } = useFiles();
+  const [editingName, setEditingName] = React.useState(false);
+  const [editName, setEditName] = React.useState(name);
+  const [newProjectDialog, setNewProjectDialog] = React.useState(false);
+  const [openProjectDialog, setOpenProjectDialog] = React.useState(false);
 
   React.useEffect(() => {
     setTimeout(() => setIsLoading(false), 1000);
   }, []);
 
+  React.useEffect(() => {
+    setEditName(name);
+  }, [name]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    let files = event.target.files;
+  const handleSaveRename = () => {
+    setName(editName);
+    setEditingName(false);
+  }
 
-    if (!files) return;
-    
-    let newVideoFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: VideoFileMeta;
-      let video = document.createElement('video');
-      
-      video.src = src;
-      await fileCallbackToPromise(video);
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, width: video.videoWidth, height: video.videoHeight, length: video.duration.toString()};
-      
-      return fileMeta;
-    }));
-
-    setVideoFiles(videoFiles => videoFiles.concat(newVideoFiles));
-  };
-
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    let files = event.target.files;
-
-    if (!files) return;
-    
-    let newImageFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: ImageFileMeta;
-      let image = document.createElement('img');
-
-      image.src = src;
-      await fileCallbackToPromise(image);
-         
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, width: image.naturalWidth, height: image.naturalHeight};
-
-      return fileMeta;
-    }));
-
-    setImageFiles(imageFiles => imageFiles.concat(newImageFiles));
-  };
-
-  const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    let files = event.target.files;
-
-    if (!files) return;
-    
-    let newAudioFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: AudioFileMeta;
-      let audio = document.createElement('audio');
-
-      audio.src = src;
-      await fileCallbackToPromise(audio);
-     
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, length: audio.duration.toString()};
-      
-      return fileMeta;
-    }));
-
-    setAudioFiles(audioFiles => audioFiles.concat(newAudioFiles));
-  };
+  const handleCancelRename = () => {
+    setEditingName(false);
+    setEditName(name);
+  }
 
   const drawer = (
     <>
       <div className={classes.toolbar} />
       <Divider />
-      <ListItemLink to="/" primary="Home" icon={<HomeIcon />} onClick={() => setMobileOpen(false)} />
-      <Divider />
       <List
         subheader={<ListSubheader component="div" id="nested-list-subheader">
-          Upload Files
+          Projects
         </ListSubheader>}
       >
-        <input
-          accept="audio/*"
-          className={classes.input}
-          id="audio-import"
-          multiple
-          type="file"
-          onChange={(e) => handleAudioUpload(e)}
-        />
-        <label htmlFor="audio-import">
-          <ListItem button>
-            <ListItemIcon>
-              <VideoLibraryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Audio" />
-          </ListItem>
-        </label>
-        <input
-          accept="image/*"
-          className={classes.input}
-          id="image-import"
-          multiple
-          type="file"
-          onChange={(e) => handleImageUpload(e)}
-        />
-        <label htmlFor="image-import">
-        <ListItem button>
+        <ListItemLink id="homeLink" to="/" primary="Current" icon={<HomeIcon />} onClick={() => setMobileOpen(false)} />
+        <ListItem id="new-project-button" onClick={() => setNewProjectDialog(true)} button>
           <ListItemIcon>
-            <ImageIcon />
+            <AddIcon />
           </ListItemIcon>
-          <ListItemText primary="Images" />
+          <ListItemText primary="New" />
         </ListItem>
-        </label>
-        <input
-          accept="video/*"
-          className={classes.input}
-          id="video-import"
-          multiple
-          type="file"
-          onChange={(e) => handleVideoUpload(e)}
-        />
-        <label htmlFor="video-import">
-          <ListItem button>
-            <ListItemIcon>
-              <VideoLibraryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Videos" />
-          </ListItem>
-        </label>
+        <ListItem id="open-project-button" onClick={() => setOpenProjectDialog(true)} button>
+          <ListItemIcon>
+            <FolderIcon />
+          </ListItemIcon>
+          <ListItemText primary="Open" />
+        </ListItem>
       </List>
       <Divider />
-      <ListItemLink to="/help" primary="Help" icon={<HelpIcon />} onClick={() => setMobileOpen(false)} />
+      <ListItemLink id="hotkeysLink" to="/hotkeys" primary="Hotkeys" icon={<KeyboardIcon />} onClick={() => setMobileOpen(false)} />
+      <ListItemLink id="helpLink" to="/help" primary="Help" icon={<HelpIcon />} onClick={() => setMobileOpen(false)} />
     </>
   );
 
@@ -274,12 +199,44 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap className={classes.title}>
-            Video Editor - Stage 2
+            {editingName ? 
+              <>
+                <TextField
+                  autoFocus
+                  variant="filled"
+                  color="secondary"
+                  className={classes.rename}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  margin="dense"
+                  id="project-name"
+                  label="Project Name"
+                />
+                <Tooltip title="Save" arrow>
+                  <IconButton onClick={handleSaveRename}>
+                    <SaveIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Cancel" arrow>
+                  <IconButton onClick={handleCancelRename}>
+                    <CancelIcon />
+                  </IconButton>
+                </Tooltip>
+              </>
+            :
+              <>
+                {name}
+                <Tooltip title="Rename" arrow>
+                  <IconButton onClick={() => setEditingName(true)}>
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              </>
+            }
           </Typography>
         </Toolbar>
       </AppBar>
       <nav className={classes.drawer} aria-label="mailbox folders">
-        {/* <Hidden mdUp> */}
         <Hidden lgUp>
           <Drawer
             variant="temporary"
@@ -297,7 +254,6 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
           </Drawer>
         </Hidden>
         <Hidden mdDown>
-        {/* <Hidden smDown> */}
           <Drawer
             classes={{
               paper: classes.drawerPaper,
@@ -312,6 +268,8 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
       <main className={classes.content}>
         <div className={classes.toolbar} />
         {children}
+        <NewProjectDialog open={newProjectDialog} setOpen={setNewProjectDialog} setName={setName} />
+        <OpenProjectDialog open={openProjectDialog} currentProjectName={name} setOpen={setOpenProjectDialog} setName={setName} />
       </main>
     </div>
   );
