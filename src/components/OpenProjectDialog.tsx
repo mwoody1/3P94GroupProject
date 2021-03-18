@@ -29,7 +29,7 @@ const OpenProjectDialog = ({ open, currentProjectName, setOpen, setName }: Props
     setOpen(false);
   };
 
-  const handleCreate = () => {
+  const handleOpen = () => {
     setName(projectName)
     setOpen(false);
   }
@@ -64,10 +64,10 @@ const OpenProjectDialog = ({ open, currentProjectName, setOpen, setName }: Props
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleClose} variant="contained">
             Cancel
           </Button>
-          <Button onClick={handleCreate} color="primary">
+          <Button onClick={handleOpen} variant="contained" color="primary">
             Open
           </Button>
         </DialogActions>

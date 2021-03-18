@@ -100,10 +100,10 @@ const VideoExportDialog = ({ open, setOpen, selectedVideo }: Props) => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleClose} variant="contained">
             Cancel
           </Button>
-          <Button onClick={handleExport} color="primary">
+          <Button onClick={handleExport} variant="contained" color="primary">
             Export
           </Button>
         </DialogActions>

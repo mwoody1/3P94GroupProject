@@ -48,10 +48,10 @@ const NewProjectDialog = ({ open, setOpen, setName }: Props) => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleClose} variant="contained">
             Cancel
           </Button>
-          <Button onClick={handleCreate} color="primary">
+          <Button onClick={handleCreate} variant="contained" color="primary">
             Create
           </Button>
         </DialogActions>
