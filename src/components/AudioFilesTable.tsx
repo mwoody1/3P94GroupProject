@@ -14,12 +14,23 @@ import { AudioFileMeta, useProject } from '../common/Context';
 import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       margin: theme.spacing(1),
-      maxHeight: 160
+      maxHeight: 125,
+      transition: '0.5s',
+      '&:hover' : {
+        maxHeight: 500,
+        transitionDelay: '0.3s'
+      }
+    },
+    actionColumn: {
+      width: 175,
+      textAlign: 'center',
+      borderRight: '2px dotted grey'
     },
     button: {
       marginLeft: theme.spacing(1)
@@ -73,21 +84,33 @@ const AudioFilesTable = () => {
         type="file"
         onChange={(e) => handleAudioUpload(e)}
       />
-      <label htmlFor="audio-import">
-        <Button
-          className={classes.button}
-          component="span"
-          fullWidth
-          startIcon={<LibraryMusicIcon />}>
-          Add Audio
-        </Button>
-      </label>
+      {audioFiles.length === 0 && 
+        <label htmlFor="audio-import">
+          <Button
+            className={classes.button}
+            component="span"
+            startIcon={<LibraryMusicIcon />}>
+            Add Audio
+          </Button>
+        </label>
+      }
       {audioFiles.length > 0 &&
       <TableContainer className={classes.root} component={Paper}>
         <Table stickyHeader size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>
+              <TableCell>
+                <label htmlFor="audio-import">
+                  <Button
+                    component="span"
+                    fullWidth
+                    startIcon={<LibraryMusicIcon />}>
+                    Add Audio
+                  </Button>
+                </label>
+              </TableCell>
               <TableCell>Audio Name</TableCell>
+              <TableCell>Type</TableCell>
               <TableCell align="right">Length</TableCell>
               <TableCell align="right">Size</TableCell>
               <TableCell>Preview</TableCell>
@@ -96,12 +119,15 @@ const AudioFilesTable = () => {
           <TableBody>
             {audioFiles.map((file, index) => (
               <TableRow key={index}>
-                <TableCell component="th" scope="row">
-                  <IconButton onClick={() => handleRemove(index)}>
-                    <DeleteForeverIcon />
-                  </IconButton>
-                  {file.name}
+                <TableCell component="th" scope="row" className={classes.actionColumn}>
+                  <Tooltip title={`Delete ${file.name}`} arrow>
+                    <IconButton onClick={() => handleRemove(index)}>
+                      <DeleteForeverIcon />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
+                <TableCell>{file.name.replace(/\.[^/.]+$/, "")}</TableCell>
+                <TableCell>{file.name.split('.').pop()}</TableCell>
                 <TableCell align="right">{file.length}</TableCell>
                 <TableCell align="right">{humanFileSize(file.size)}</TableCell>
                 <TableCell>

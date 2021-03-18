@@ -29,7 +29,7 @@ const Shortcuts = () => {
           Hotkeys
       </Typography>
       <Typography variant="body1" gutterBottom>
-          All the hotkeys associated with the current project screen will require a second press if initiated from a different screen (the first press will navigate to the home page and the second will excecute the shortcut).
+          All the hotkeys associated with the current project screen will require a second press if initiated from a different screen (the first press will navigate to the current project page and the second will excecute the shortcut).
       </Typography>
       <TableContainer className={classes.root} component={Paper}>
         <Table id="hotkeys-table" stickyHeader size="small" aria-label="a dense table">

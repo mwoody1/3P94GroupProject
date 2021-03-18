@@ -18,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { useSnackbar } from 'notistack';
 import VideoExportDialog from './VideoExportDialog';
 import ImageExportDialog from './ImageExportDialog';
+import Typography from '@material-ui/core/Typography';
 
 interface Props {
   children: React.ReactElement;
@@ -291,7 +292,7 @@ const Edit = () => {
   return (
     <>
       <Grid container justify="space-between" spacing={2}>
-        <Grid item md={6} container direction="column">
+        <Grid item md={8} container direction="column">
           <Grid item>
             <AudioFilesTable />
           </Grid>
@@ -302,8 +303,9 @@ const Edit = () => {
             <VideoFilesTable />
           </Grid>
         </Grid>
-        {(selectedImage || selectedVideo) && 
-        <Grid item md={6} container alignItems="center" direction="column">
+        <Grid item md={4} container alignItems="center" direction="column">
+        {(selectedImage || selectedVideo) ?
+        <> 
           <Grid item>
             {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
             {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
@@ -329,7 +331,13 @@ const Edit = () => {
           <Grid item>
             <Button variant="contained" color="primary" onClick={reset}>Reset</Button>
           </Grid>
-        </Grid>}
+        </>
+        :
+        <Grid item>
+          <Typography variant="h5">Select a video or image to start editing</Typography>
+        </Grid>
+        }
+        </Grid>
         {selectedImage && 
         <Grid item container justify="center" direction="column" alignItems="center">
           <Grid item>

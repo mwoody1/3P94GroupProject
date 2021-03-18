@@ -14,12 +14,23 @@ import { ImageFileMeta, useProject } from '../common/Context';
 import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       margin: theme.spacing(1),
-      maxHeight: 160
+      maxHeight: 170,
+      transition: '0.5s',
+      '&:hover' : {
+        maxHeight: 500,
+        transitionDelay: '0.3s'
+      }
+    },
+    actionColumn: {
+      width: 175,
+      textAlign: 'center',
+      borderRight: '2px dotted grey'
     },
     button: {
       marginLeft: theme.spacing(1)
@@ -90,21 +101,33 @@ const ImageFilesTable = () => {
         type="file"
         onChange={(e) => handleImageUpload(e)}
       />
-      <label htmlFor="image-import">
-        <Button
-          className={classes.button}
-          component="span"
-          fullWidth
-          startIcon={<ImageIcon />}>
-          Add Images
-        </Button>
-      </label>
+      {imageFiles.length === 0 &&
+        <label htmlFor="image-import">
+          <Button
+            className={classes.button}
+            component="span"
+            startIcon={<ImageIcon />}>
+            Add Images
+          </Button>
+        </label>
+      }
       {imageFiles.length > 0 &&
         <TableContainer className={classes.root} component={Paper}>
           <Table stickyHeader size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>
+                <TableCell className={classes.actionColumn}>
+                  <label htmlFor="image-import">
+                    <Button
+                      fullWidth
+                      component="span"
+                      startIcon={<ImageIcon />}>
+                      Add Images
+                    </Button>
+                  </label>
+                </TableCell>
                 <TableCell>Image Name</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell align="right">Dimensions</TableCell>
                 <TableCell align="right">Size</TableCell>
                 <TableCell>Preview</TableCell>
@@ -113,12 +136,15 @@ const ImageFilesTable = () => {
             <TableBody>
               {imageFiles.map((file, index) => (
                 <TableRow key={index} hover className={classes.clickable} onClick={() => handleSelect(file)}>
-                  <TableCell component="th" scope="row">
-                    <IconButton onClick={(e) => handleRemove(e, index)}>
-                      <DeleteForeverIcon />
-                    </IconButton>
-                    {file.name}
+                  <TableCell component="th" scope="row" className={classes.actionColumn}>
+                    <Tooltip title={`Delete ${file.name}`} arrow>
+                      <IconButton onClick={(e) => handleRemove(e, index)}>
+                        <DeleteForeverIcon />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
+                  <TableCell>{file.name.replace(/\.[^/.]+$/, "")}</TableCell>
+                  <TableCell>{file.name.split('.').pop()}</TableCell>
                   <TableCell align="right">{`${file.width}x${file.height}`}</TableCell>
                   <TableCell align="right">{humanFileSize(file.size)}</TableCell>
                   <TableCell>
