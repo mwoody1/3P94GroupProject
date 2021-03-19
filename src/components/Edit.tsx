@@ -506,7 +506,7 @@ const Edit = () => {
                   <TextField
                     value={maxMediaDisplayWidth}
                     onChange={(e) => handleDimensionChange(e, 'width')}
-                    variant="filled"
+                    variant="outlined"
                     margin="dense"
                     label="Width (px)"
                     helperText={`Max: ${selectedVideo ? selectedVideo.width : selectedImage && selectedImage.width}px (original size)`}
@@ -517,7 +517,7 @@ const Edit = () => {
                   <TextField
                     value={maxMediaDisplayHeight}
                     onChange={(e) => handleDimensionChange(e, 'height')}
-                    variant="filled"
+                    variant="outlined"
                     margin="dense"
                     label="Height (px)"
                     helperText={`Max: ${selectedVideo ? selectedVideo.height : selectedImage && selectedImage.height}px (original size)`}
