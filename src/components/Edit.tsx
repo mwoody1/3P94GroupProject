@@ -340,51 +340,48 @@ const Edit = () => {
           </Grid>
         </Grid>
         <Grid item md={4} container alignItems="center" direction="column">
-        {(selectedImage || selectedVideo) ?
-        <> 
-          <Grid item>
-            {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
-            {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
-          </Grid>
-          <Grid item>
-            <ColorSlider title="Red Scale" value={redScale} setValue={setRedScale} min={0} max={200} />
-            <ColorSlider title="Green Scale" value={greenScale} setValue={setGreenScale} min={0} max={200} />
-            <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
-            <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
-            <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={greyscale}
-                  onKeyPress={handleGreyscaleKeyPress}
-                  onChange={handleGreyscaleChange}
-                  name="greyScale"
-                  color="secondary"
-                />
-              }
-              label="Greyscale"
-            />
-          </Grid>
-          <Grid item>
-            <Button variant="contained" onClick={reset}>Reset</Button>
-          </Grid>
-        </>
-        :
-        <Grid item>
-          <Typography variant="h5">Select a video or image to start editing</Typography>
-        </Grid>
+        {(selectedImage || selectedVideo) &&
+          <> 
+            <Grid item>
+              {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
+              {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
+            </Grid>
+            <Grid item>
+              <ColorSlider title="Red Scale" value={redScale} setValue={setRedScale} min={0} max={200} />
+              <ColorSlider title="Green Scale" value={greenScale} setValue={setGreenScale} min={0} max={200} />
+              <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
+              <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
+              <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={greyscale}
+                    onKeyPress={handleGreyscaleKeyPress}
+                    onChange={handleGreyscaleChange}
+                    name="greyScale"
+                    color="secondary"
+                  />
+                }
+                label="Greyscale"
+              />
+            </Grid>
+            <Grid item>
+              <Button variant="contained" onClick={reset}>Reset</Button>
+            </Grid>
+          </>
         }
         </Grid>
-        {selectedImage && 
         <Grid item container justify="center" direction="column" alignItems="center">
+        {selectedImage && 
+        <>
           <Grid item>
             <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
           </Grid>
           <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
-        </Grid>
+        </>
         }
         {selectedVideo && 
-        <Grid item container justify="center" direction="column" alignItems="center">
+        <>
           <Grid item>
             <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
             <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
@@ -413,8 +410,14 @@ const Edit = () => {
             </IconButton>}
           </Grid>
           <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
+        </>
+        }
+        {!selectedImage && !selectedVideo &&
+        <Grid item>
+          <Typography variant="h5">Select a video or image to start editing</Typography>
         </Grid>
         }
+        </Grid>
       </Grid>
       {selectedImage && <ImageExportDialog open={imageExportOpen} setOpen={setImageExportOpen} selectedImage={selectedImage} />}
       {selectedVideo && <VideoExportDialog open={videoExportOpen} setOpen={setVideoExportOpen} selectedVideo={selectedVideo} />}
