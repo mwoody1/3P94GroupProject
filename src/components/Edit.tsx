@@ -99,11 +99,15 @@ const Edit = () => {
     const bufferListener = () => {
       if (!video) return;
 
-      let bufferedEnd = video.buffered.end(video.buffered.length - 1);
-      let duration = video.duration;
+      try {
+        let bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        let duration = video.duration;
 
-      if (duration && duration > 0) {
-        setBuffer((bufferedEnd / duration) * 100);
+        if (duration && duration > 0) {
+          setBuffer((bufferedEnd / duration) * 100);
+        }
+      } catch (err) {
+        
       }
     }
 
