@@ -44,7 +44,6 @@ const useStyles = makeStyles((theme: Theme) =>
 const AudioFilesTable = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  // const { audioFiles, setAudioFiles } = useProjects();
   const { currentProject, setCurrentProject } = useProjects();
   const { audioFiles } = currentProject;
 
@@ -68,13 +67,11 @@ const AudioFilesTable = () => {
 
     event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
     enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
-    // setAudioFiles(audioFiles => audioFiles.concat(newAudioFiles));
     setCurrentProject({ ...currentProject, audioFiles: audioFiles.concat(newAudioFiles) });
   };
   
   const handleRemove = (index: number) => {
     enqueueSnackbar(`${audioFiles[index].name} removed.`, { variant: 'info' });
-    // setAudioFiles(audioFiles => audioFiles.filter((_, i) => i !== index));
     setCurrentProject({ ...currentProject, audioFiles: audioFiles.filter((_, i) => i !== index) });
   }
 

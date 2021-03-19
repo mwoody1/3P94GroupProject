@@ -47,7 +47,6 @@ const useStyles = makeStyles((theme: Theme) =>
 const ImageFilesTable = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  // const { imageFiles, setImageFiles, selectedImage, setSelectedImage, selectedVideo, setSelectedVideo } = useProject();
   const { currentProject, setCurrentProject } = useProjects();
   const { selectedImage, selectedVideo, imageFiles } = currentProject;
 
@@ -56,22 +55,19 @@ const ImageFilesTable = () => {
     if (selectedImage) {
       let selectedImageIndex = imageFiles.findIndex(file => file.name === selectedImage.name);
       if (index === selectedImageIndex) {
-        // setSelectedImage(undefined);
         setCurrentProject({ ...currentProject, selectedImage: undefined });
       }
     }
     enqueueSnackbar(`${imageFiles[index].name} removed.`, { variant: 'info' });
     setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index) });
-    // setImageFiles(imageFiles => imageFiles.filter((_, i) => i !== index))
   }
   
   const handleSelect = (file: ImageFileMeta) => {
     if (selectedVideo) {
-      // setSelectedVideo(undefined);
-      setCurrentProject({ ...currentProject, selectedVideo: undefined });
+      setCurrentProject({ ...currentProject, selectedVideo: undefined, selectedImage: file });
+    } else {
+      setCurrentProject({ ...currentProject, selectedImage: file });
     }
-    // setSelectedImage(file);
-    setCurrentProject({ ...currentProject, selectedImage: file });
   }
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +91,6 @@ const ImageFilesTable = () => {
     event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
     enqueueSnackbar(`${newImageFiles.length} image file(s) added.`);
     setCurrentProject({ ...currentProject, imageFiles: imageFiles.concat(newImageFiles) });
-    // setImageFiles(imageFiles => imageFiles.concat(newImageFiles));
   };
   
   return (

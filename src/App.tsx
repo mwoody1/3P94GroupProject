@@ -31,7 +31,7 @@ const keyMap: KeyMap = {
   EXPORT_PROJECT: { name: 'Export Project', sequence: 'shift+e', action: 'keydown' }
 }
 
-const handlers = {
+export const handlers = {
   SHOW_HOTKEYS: () => {
     let hotkeysButton = document.getElementById('hotkeysLink');
     if (hotkeysButton) hotkeysButton.click();

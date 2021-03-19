@@ -18,6 +18,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import VideoExportDialog from './VideoExportDialog';
 import ImageExportDialog from './ImageExportDialog';
 import Typography from '@material-ui/core/Typography';
+import { handlers } from '../App';
 
 interface Props {
   children: React.ReactElement;
@@ -287,6 +288,43 @@ const Edit = () => {
     setRangeValue(tempRangeValue);
   }
 
+  const handleGreyscaleKeyPress = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    // triggers hotkeys manually because keybinds normally don't work for input fields
+    if (event.shiftKey) {
+      switch (event.key) {
+        case 'H':
+          handlers.SHOW_HOTKEYS();
+          return;
+        case '?':
+          handlers.SHOW_HELP();
+          return;
+        case 'N':
+          handlers.NEW_PROJECT(event.nativeEvent);
+          return;
+        case 'O':
+          handlers.OPEN_PROJECT();
+          return;
+        case 'A':
+          handlers.IMPORT_AUDIO();
+          return;
+        case 'I':
+          handlers.IMPORT_IMAGES();
+          return;
+        case 'V':
+          handlers.IMPORT_VIDEOS();
+          return;
+        case 'S':
+          handlers.SAVE_PROJECT();
+          return;
+        case 'E':
+          handlers.EXPORT_PROJECT(event.nativeEvent);
+          return;
+        default:
+          return;
+      }
+    }
+  }
+
   return (
     <>
       <Grid container justify="space-between" spacing={2}>
@@ -318,16 +356,17 @@ const Edit = () => {
               control={
                 <Switch
                   checked={greyscale}
+                  onKeyPress={handleGreyscaleKeyPress}
                   onChange={handleGreyscaleChange}
                   name="greyScale"
-                  color="primary"
+                  color="secondary"
                 />
               }
               label="Greyscale"
             />
           </Grid>
           <Grid item>
-            <Button variant="contained" color="primary" onClick={reset}>Reset</Button>
+            <Button variant="contained" onClick={reset}>Reset</Button>
           </Grid>
         </>
         :
@@ -341,7 +380,7 @@ const Edit = () => {
           <Grid item>
             <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
           </Grid>
-          <Button id="export-project" variant="contained" onClick={() => setImageExportOpen(true)}>Export</Button>
+          <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
         </Grid>
         }
         {selectedVideo && 
@@ -373,7 +412,7 @@ const Edit = () => {
               <PauseIcon />
             </IconButton>}
           </Grid>
-          <Button id="export-project" variant="contained" onClick={() => setVideoExportOpen(true)}>Export</Button>
+          <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
         </Grid>
         }
       </Grid>

@@ -47,7 +47,6 @@ const useStyles = makeStyles((theme: Theme) =>
 const VideoFilesTable = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  // const { videoFiles, setVideoFiles, selectedVideo, setSelectedVideo, selectedImage, setSelectedImage } = useProject();
   const { currentProject, setCurrentProject } = useProjects();
   const { selectedImage, selectedVideo, videoFiles } = currentProject;
 
@@ -56,22 +55,19 @@ const VideoFilesTable = () => {
     if (selectedVideo) {
       let selectedVideoIndex = videoFiles.findIndex(file => file.name === selectedVideo.name);
       if (index === selectedVideoIndex) {
-        // setSelectedVideo(undefined);
         setCurrentProject({ ...currentProject, selectedVideo: undefined });
       }
     }
     enqueueSnackbar(`${videoFiles[index].name} removed.`, { variant: 'info' });
     setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
-    // setVideoFiles(videoFiles => videoFiles.filter((_, i) => i !== index));
   }
 
   const handleSelect = (file: VideoFileMeta) => {
     if (selectedImage) {
-      // setSelectedImage(undefined);
-      setCurrentProject({ ...currentProject, selectedImage: undefined });
+      setCurrentProject({ ...currentProject, selectedImage: undefined, selectedVideo: file });
+    } else {
+      setCurrentProject({ ...currentProject, selectedVideo: file });
     }
-    // setSelectedVideo(file);
-    setCurrentProject({ ...currentProject, selectedVideo: file });
   }
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,7 +90,6 @@ const VideoFilesTable = () => {
     event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
     enqueueSnackbar(`${newVideoFiles.length} video file(s) added.`);
     setCurrentProject({ ...currentProject, videoFiles: videoFiles.concat(newVideoFiles) });
-    // setVideoFiles(videoFiles => videoFiles.concat(newVideoFiles));
   };
 
   return (
