@@ -23,6 +23,10 @@ const OpenProjectDialog = ({ open, setOpen }: Props) => {
   const { enqueueSnackbar } = useSnackbar();
   const [projectName, setProjectName] = React.useState('');
 
+  React.useEffect(() => {
+    setProjectName('');
+  }, [open]);
+
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setProjectName(event.target.value as string);
   };

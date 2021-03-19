@@ -22,6 +22,10 @@ const RenameProjectDialog = ({ open, setOpen }: Props) => {
   const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
+    setProjectName(currentProject.name);
+  }, [open, currentProject]);
+
+  React.useEffect(() => {
     if (projects.find(project => project.name === projectName)) {
       setError(true);
     } else {

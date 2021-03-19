@@ -107,7 +107,7 @@ const Edit = () => {
           setBuffer((bufferedEnd / duration) * 100);
         }
       } catch (err) {
-        
+        // something went wrong accessing buffer, just ignore and continue
       }
     }
 
