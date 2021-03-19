@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import VideoLibraryIcon from '@material-ui/icons/VideoLibrary';
-import { VideoFileMeta, useProject } from '../common/Context';
+import { VideoFileMeta, useProjects } from '../common/Context';
 import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
@@ -47,25 +47,31 @@ const useStyles = makeStyles((theme: Theme) =>
 const VideoFilesTable = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  const { videoFiles, setVideoFiles, selectedVideo, setSelectedVideo, selectedImage, setSelectedImage } = useProject();
+  // const { videoFiles, setVideoFiles, selectedVideo, setSelectedVideo, selectedImage, setSelectedImage } = useProject();
+  const { currentProject, setCurrentProject } = useProjects();
+  const { selectedImage, selectedVideo, videoFiles } = currentProject;
 
   const handleRemove = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
     event.stopPropagation();
     if (selectedVideo) {
       let selectedVideoIndex = videoFiles.findIndex(file => file.name === selectedVideo.name);
       if (index === selectedVideoIndex) {
-        setSelectedVideo(undefined);
+        // setSelectedVideo(undefined);
+        setCurrentProject({ ...currentProject, selectedVideo: undefined });
       }
     }
     enqueueSnackbar(`${videoFiles[index].name} removed.`, { variant: 'info' });
-    setVideoFiles(videoFiles => videoFiles.filter((_, i) => i !== index));
+    setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
+    // setVideoFiles(videoFiles => videoFiles.filter((_, i) => i !== index));
   }
 
   const handleSelect = (file: VideoFileMeta) => {
     if (selectedImage) {
-      setSelectedImage(undefined);
+      // setSelectedImage(undefined);
+      setCurrentProject({ ...currentProject, selectedImage: undefined });
     }
-    setSelectedVideo(file);
+    // setSelectedVideo(file);
+    setCurrentProject({ ...currentProject, selectedVideo: file });
   }
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +93,8 @@ const VideoFilesTable = () => {
 
     event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
     enqueueSnackbar(`${newVideoFiles.length} video file(s) added.`);
-    setVideoFiles(videoFiles => videoFiles.concat(newVideoFiles));
+    setCurrentProject({ ...currentProject, videoFiles: videoFiles.concat(newVideoFiles) });
+    // setVideoFiles(videoFiles => videoFiles.concat(newVideoFiles));
   };
 
   return (

@@ -7,7 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
-import { useProjects, projectDefaults } from '../common/Context';
+import { useProjects } from '../common/Context';
 import { useSnackbar } from 'notistack';
 
 type Props = {
@@ -15,15 +15,11 @@ type Props = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const NewProjectDialog = ({ open, setOpen }: Props) => {
-  const { projects, setProjects, setCurrentProject } = useProjects();
+const RenameProjectDialog = ({ open, setOpen }: Props) => {
+  const { projects, setProjects, currentProject, setCurrentProject } = useProjects();
   const { enqueueSnackbar } = useSnackbar();
-  const [projectName, setProjectName] = React.useState(projectDefaults.name);
+  const [projectName, setProjectName] = React.useState(currentProject.name);
   const [error, setError] = React.useState(false);
-
-  React.useEffect(() => {
-    setProjectName(projectDefaults.name);
-  }, [open]);
 
   React.useEffect(() => {
     if (projects.find(project => project.name === projectName)) {
@@ -37,29 +33,31 @@ const NewProjectDialog = ({ open, setOpen }: Props) => {
     setOpen(false);
   };
 
-  const handleCreate = () => {
-    const newProject = { ...projectDefaults };
-    newProject.name = projectName;
-
+  const handleRename = () => {
     setOpen(false);
-    setProjects(projects => projects.concat(newProject));
-    setCurrentProject(newProject);
-    enqueueSnackbar(`${projectName} created.`, { variant: 'info' });
+    setProjects(projects.map(project => {
+      if (project.name === currentProject.name) {
+        return { ...currentProject, name: projectName };
+      } else {
+        return project;
+      }
+    }));
+    setCurrentProject({ ...currentProject, name: projectName});
+    enqueueSnackbar(`${currentProject.name} renamed to ${projectName}.`, { variant: 'info' });
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} aria-labelledby="new-project-dialog">
-      <DialogTitle id="new-project-dialog">New Project Options</DialogTitle>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="project-rename-dialog">
+      <DialogTitle id="project-rename-dialog">Rename Project</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          
+          Note: This process will also save the current project
         </DialogContentText>
         <Grid container spacing={2} alignItems="center">
           <Grid item>
             <TextField
               autoFocus
               value={projectName}
-              onFocus={(e) => e.target.select()}
               onChange={(e) => setProjectName(e.target.value)}
               variant="filled"
               margin="dense"
@@ -74,12 +72,12 @@ const NewProjectDialog = ({ open, setOpen }: Props) => {
         <Button onClick={handleClose} variant="contained">
           Cancel
         </Button>
-        <Button onClick={handleCreate} variant="contained" color="primary" disabled={error}>
-          Create
+        <Button onClick={handleRename} variant="contained" color="primary" disabled={error}>
+          Rename
         </Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-export default NewProjectDialog;
+export default RenameProjectDialog;

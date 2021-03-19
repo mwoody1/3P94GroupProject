@@ -22,33 +22,54 @@ type FileMeta = {
   type: string
 }
 
-type Project = {
+export type Project = {
   name: string
   audioFiles: AudioFileMeta[]
   imageFiles: ImageFileMeta[]
   videoFiles: VideoFileMeta[]
   selectedImage?: ImageFileMeta
   selectedVideo?: VideoFileMeta
-  setName: React.Dispatch<React.SetStateAction<string>>
-  setAudioFiles: React.Dispatch<React.SetStateAction<AudioFileMeta[]>>
-  setImageFiles: React.Dispatch<React.SetStateAction<ImageFileMeta[]>>
-  setVideoFiles: React.Dispatch<React.SetStateAction<VideoFileMeta[]>>
-  setSelectedImage: React.Dispatch<React.SetStateAction<ImageFileMeta | undefined>>
-  setSelectedVideo: React.Dispatch<React.SetStateAction<VideoFileMeta | undefined>>
 }
+
+export type ProjectsState = {
+  projects: Project[]
+  currentProject: Project
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>
+  setCurrentProject: React.Dispatch<React.SetStateAction<Project>>
+}
+
+// export const projectDefaults: Project = {
+//   name: 'New Project',
+//   audioFiles: [],
+//   imageFiles: [],
+//   videoFiles: [],
+//   redScale: 100,
+//   greenScale: 100,
+//   blueScale: 100,
+//   brightness: 100,
+//   opacity: 100,
+//   greyscale: false,
+//   setRedScale: () => {},
+//   setGreenScale: () => {},
+//   setBlueScale: () => {},
+//   setBrightness: () => {},
+//   setOpacity: () => {},
+//   setGreyscale: () => {},
+// }
 
 export const projectDefaults: Project = {
   name: 'New Project',
   audioFiles: [],
   imageFiles: [],
-  videoFiles: [],
-  setName: () => {},
-  setAudioFiles: () => {},
-  setImageFiles: () => {},
-  setVideoFiles: () => {},
-  setSelectedImage: () => {},
-  setSelectedVideo: () => {}
+  videoFiles: []
 }
 
-export const ProjectContext = React.createContext<Project>(projectDefaults);
-export const useProject = () => React.useContext(ProjectContext);
+export const initialProjectsState: ProjectsState = {
+  projects: [projectDefaults],
+  currentProject: projectDefaults,
+  setProjects: () => {},
+  setCurrentProject: () => {},
+}
+
+export const StateContext = React.createContext<ProjectsState>(initialProjectsState);
+export const useProjects = () => React.useContext(StateContext);

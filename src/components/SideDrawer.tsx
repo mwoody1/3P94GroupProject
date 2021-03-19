@@ -16,20 +16,20 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import AddIcon from '@material-ui/icons/Add';
 import FolderIcon from '@material-ui/icons/Folder';
-import EditIcon from '@material-ui/icons/Edit';
-import SaveIcon from '@material-ui/icons/Save';
-import CancelIcon from '@material-ui/icons/Cancel';
 import Backdrop from '../common/Backdrop';
 import { convertHexToRGBA } from '../common';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import HomeIcon from '@material-ui/icons/Home';
 import KeyboardIcon from '@material-ui/icons/Keyboard';
+import EditIcon from '@material-ui/icons/Edit';
+import SaveIcon from '@material-ui/icons/Save';
 import HelpIcon from '@material-ui/icons/Help';
-import { useProject } from '../common/Context';
-import TextField from '@material-ui/core/TextField';
-import Tooltip from '@material-ui/core/Tooltip';
+import { useProjects } from '../common/Context';
 import NewProjectDialog from './NewProjectDialog';
 import OpenProjectDialog from './OpenProjectDialog';
+import Tooltip from '@material-ui/core/Tooltip';
+import RenameProjectDialog from './RenameProjectDialog';
+import { useSnackbar } from 'notistack';
 
 
 const drawerWidth = 240;
@@ -123,11 +123,12 @@ function ListItemLink(props: ListItemLinkProps) {
 
 const SideDrawer = ({ children }: SideDrawerProps) => {
   const classes = useStyles();
-  const { name, setName } = useProject();
+  const { enqueueSnackbar } = useSnackbar();
+  const { currentProject, setProjects } = useProjects();
+  const { name } = currentProject;
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [editingName, setEditingName] = React.useState(false);
-  const [editName, setEditName] = React.useState(name);
+  const [renameProjectDialog, setRenameProjectDialog] = React.useState(false);
   const [newProjectDialog, setNewProjectDialog] = React.useState(false);
   const [openProjectDialog, setOpenProjectDialog] = React.useState(false);
 
@@ -135,22 +136,20 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
     setTimeout(() => setIsLoading(false), 1000);
   }, []);
 
-  React.useEffect(() => {
-    setEditName(name);
-  }, [name]);
-
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleSaveRename = () => {
-    setName(editName);
-    setEditingName(false);
-  }
-
-  const handleCancelRename = () => {
-    setEditingName(false);
-    setEditName(name);
+  const handleSave = () => {
+    setProjects(projects => projects.map(project => {
+        if (project.name === name) {
+          return currentProject;
+        } else {
+          return project;
+        }
+      })
+    );
+    enqueueSnackbar('Project saved', { variant: 'success' })
   }
 
   const drawer = (
@@ -168,6 +167,12 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
             <AddIcon />
           </ListItemIcon>
           <ListItemText primary="New" />
+        </ListItem>
+        <ListItem id="save-project-button" onClick={handleSave} button>
+          <ListItemIcon>
+            <SaveIcon />
+          </ListItemIcon>
+          <ListItemText primary="Save" />
         </ListItem>
         <ListItem id="open-project-button" onClick={() => setOpenProjectDialog(true)} button>
           <ListItemIcon>
@@ -199,40 +204,12 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap className={classes.title}>
-            {editingName ? 
-              <>
-                <TextField
-                  autoFocus
-                  variant="filled"
-                  color="secondary"
-                  className={classes.rename}
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  margin="dense"
-                  id="project-name"
-                  label="Project Name"
-                />
-                <Tooltip title="Save" arrow>
-                  <IconButton onClick={handleSaveRename}>
-                    <SaveIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Cancel" arrow>
-                  <IconButton onClick={handleCancelRename}>
-                    <CancelIcon />
-                  </IconButton>
-                </Tooltip>
-              </>
-            :
-              <>
-                {name}
-                <Tooltip title="Rename" arrow>
-                  <IconButton onClick={() => setEditingName(true)}>
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-              </>
-            }
+            {name}
+            <Tooltip title="Rename" arrow>
+              <IconButton onClick={() => setRenameProjectDialog(true)}>
+                <EditIcon />
+              </IconButton>
+            </Tooltip>
           </Typography>
         </Toolbar>
       </AppBar>
@@ -268,8 +245,9 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
       <main className={classes.content}>
         <div className={classes.toolbar} />
         {children}
-        <NewProjectDialog open={newProjectDialog} setOpen={setNewProjectDialog} setName={setName} />
-        <OpenProjectDialog open={openProjectDialog} currentProjectName={name} setOpen={setOpenProjectDialog} setName={setName} />
+        <RenameProjectDialog open={renameProjectDialog} setOpen={setRenameProjectDialog} />
+        <NewProjectDialog open={newProjectDialog} setOpen={setNewProjectDialog} />
+        <OpenProjectDialog open={openProjectDialog} setOpen={setOpenProjectDialog} />
       </main>
     </div>
   );

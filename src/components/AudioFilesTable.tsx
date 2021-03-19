@@ -10,7 +10,7 @@ import Paper from '@material-ui/core/Paper';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import LibraryMusicIcon from '@material-ui/icons/LibraryMusic';
-import { AudioFileMeta, useProject } from '../common/Context';
+import { AudioFileMeta, useProjects } from '../common/Context';
 import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
@@ -44,7 +44,9 @@ const useStyles = makeStyles((theme: Theme) =>
 const AudioFilesTable = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
-  const { audioFiles, setAudioFiles } = useProject();
+  // const { audioFiles, setAudioFiles } = useProjects();
+  const { currentProject, setCurrentProject } = useProjects();
+  const { audioFiles } = currentProject;
 
   const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     let files = event.target.files;
@@ -66,12 +68,14 @@ const AudioFilesTable = () => {
 
     event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
     enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
-    setAudioFiles(audioFiles => audioFiles.concat(newAudioFiles));
+    // setAudioFiles(audioFiles => audioFiles.concat(newAudioFiles));
+    setCurrentProject({ ...currentProject, audioFiles: audioFiles.concat(newAudioFiles) });
   };
   
   const handleRemove = (index: number) => {
     enqueueSnackbar(`${audioFiles[index].name} removed.`, { variant: 'info' });
-    setAudioFiles(audioFiles => audioFiles.filter((_, i) => i !== index))
+    // setAudioFiles(audioFiles => audioFiles.filter((_, i) => i !== index));
+    setCurrentProject({ ...currentProject, audioFiles: audioFiles.filter((_, i) => i !== index) });
   }
 
   return (

@@ -1,10 +1,10 @@
 import React from 'react';
-// import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+// import { ThemeOptions, ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { SnackbarProvider } from 'notistack';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ThemeOptions, ThemeProvider, unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core/styles';
 import Main from './components/Main';
-import { ProjectContext, projectDefaults, AudioFileMeta, ImageFileMeta, VideoFileMeta } from './common/Context';
+import { StateContext, initialProjectsState, Project } from './common/Context';
 import { GlobalHotKeys, KeyMap } from 'react-hotkeys';
 
 const theme: ThemeOptions = {
@@ -77,12 +77,9 @@ const handlers = {
     }
   },
   SAVE_PROJECT: () => {
-    let saveButton = document.getElementById('save-project');
+    let saveButton = document.getElementById('save-project-button');
     if (saveButton) {
       saveButton.click();
-    } else {
-      let homeButton = document.getElementById('homeLink');
-      if (homeButton) homeButton.click();
     }
   },
   EXPORT_PROJECT: (keyEvent?: KeyboardEvent | undefined) => {
@@ -99,23 +96,19 @@ const handlers = {
 
 const App = () => {
   const muiTheme = createMuiTheme(theme);
-  const [name, setName] = React.useState(projectDefaults.name);
-  const [audioFiles, setAudioFiles] = React.useState<AudioFileMeta[]>(projectDefaults.audioFiles);
-  const [imageFiles, setImageFiles] = React.useState<ImageFileMeta[]>(projectDefaults.imageFiles);
-  const [videoFiles, setVideoFiles] = React.useState<VideoFileMeta[]>(projectDefaults.videoFiles);
-  const [selectedImage, setSelectedImage] = React.useState<ImageFileMeta | undefined>();
-  const [selectedVideo, setSelectedVideo] = React.useState<VideoFileMeta | undefined>();
+  const [currentProject, setCurrentProject] = React.useState<Project>(initialProjectsState.currentProject);
+  const [projects, setProjects] = React.useState<Project[]>(initialProjectsState.projects);
 
   return (
     <ThemeProvider theme={muiTheme}>
-      <ProjectContext.Provider value={{ name, audioFiles, imageFiles, videoFiles, selectedImage, selectedVideo, setName, setAudioFiles, setImageFiles, setVideoFiles, setSelectedImage, setSelectedVideo }}>
+      <StateContext.Provider value={{ projects, currentProject, setProjects, setCurrentProject }}>
         <SnackbarProvider maxSnack={3}>
           <GlobalHotKeys keyMap={keyMap} handlers={handlers} />
           <Router>
             <Main />
           </Router>
         </SnackbarProvider>
-      </ProjectContext.Provider>
+      </StateContext.Provider>
     </ThemeProvider>
   );
 }

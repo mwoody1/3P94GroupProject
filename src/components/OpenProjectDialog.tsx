@@ -10,16 +10,18 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import { useProjects } from '../common/Context';
+import { useSnackbar } from 'notistack';
 
 type Props = {
   open: boolean
-  currentProjectName: string
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setName: React.Dispatch<React.SetStateAction<string>>
 }
 
-const OpenProjectDialog = ({ open, currentProjectName, setOpen, setName }: Props) => {
-  const [projectName, setProjectName] = React.useState(currentProjectName);
+const OpenProjectDialog = ({ open, setOpen }: Props) => {
+  const { projects, setCurrentProject } = useProjects();
+  const { enqueueSnackbar } = useSnackbar();
+  const [projectName, setProjectName] = React.useState('');
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setProjectName(event.target.value as string);
@@ -30,49 +32,50 @@ const OpenProjectDialog = ({ open, currentProjectName, setOpen, setName }: Props
   };
 
   const handleOpen = () => {
-    setName(projectName)
-    setOpen(false);
+    let projectToOpen = projects.find(project => project.name === projectName);
+    if (projectToOpen) {
+      setCurrentProject(projectToOpen);
+      setOpen(false);
+      enqueueSnackbar(`${projectName} opened.`, { variant: 'info' });
+    } else {
+      console.log('could not find project');
+    }
   }
 
   return (
-    <>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="open-project-dialog">
-        <DialogTitle id="open-project-dialog">Open Project</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            
-          </DialogContentText>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item>
-              <FormControl style={{ width: 200 }}>
-                <InputLabel id="select-project">Project</InputLabel>
-                <Select
-                  value={projectName}
-                  onChange={handleChange}
-                  variant="filled"
-                  margin="dense"
-                  id="select-project"
-                  label="Project"
-                >
-                  <MenuItem value={currentProjectName}>{currentProjectName}</MenuItem>
-                  <MenuItem value={'NewProject1'}>NewProject1</MenuItem>
-                  <MenuItem value={'Original'}>Original</MenuItem>
-                  <MenuItem value={'Work'}>Work</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+    <Dialog open={open} onClose={handleClose} aria-labelledby="open-project-dialog">
+      <DialogTitle id="open-project-dialog">Open Project</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          
+        </DialogContentText>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item>
+            <FormControl style={{ width: 200 }}>
+              <InputLabel id="select-project">Project</InputLabel>
+              <Select
+                value={projectName}
+                onChange={handleChange}
+                variant="filled"
+                margin="dense"
+                id="select-project"
+                label="Project"
+              >
+                {projects.map((project, index) => <MenuItem key={index} value={project.name}>{project.name}</MenuItem>)}
+              </Select>
+            </FormControl>
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} variant="contained">
-            Cancel
-          </Button>
-          <Button onClick={handleOpen} variant="contained" color="primary">
-            Open
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} variant="contained">
+          Cancel
+        </Button>
+        <Button onClick={handleOpen} variant="contained" color="primary">
+          Open
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

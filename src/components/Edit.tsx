@@ -3,7 +3,7 @@ import Switch from '@material-ui/core/Switch';
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-import { useProject } from '../common/Context';
+import { useProjects } from '../common/Context';
 import AudioFilesTable from './AudioFilesTable';
 import ColorSlider from './ColorSlider';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -15,7 +15,6 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
-import { useSnackbar } from 'notistack';
 import VideoExportDialog from './VideoExportDialog';
 import ImageExportDialog from './ImageExportDialog';
 import Typography from '@material-ui/core/Typography';
@@ -62,15 +61,15 @@ const maxMediaDisplayHeight = 500;
 
 const Edit = () => {
   const classes = useStyles();
-  const { enqueueSnackbar } = useSnackbar();
-  const { selectedImage, selectedVideo } = useProject();
+  const { currentProject } = useProjects();
+  const { selectedImage, selectedVideo } = currentProject;
   const imageRef = React.useRef<HTMLImageElement | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const canvasRefImage = React.useRef<HTMLCanvasElement | null>(null);
-  const [redValue, setRedValue] = React.useState<number>(100);
-  const [greenValue, setGreenValue] = React.useState<number>(100);
-  const [blueValue, setBlueValue] = React.useState<number>(100);
+  const [redScale, setRedScale] = React.useState<number>(100);
+  const [greenScale, setGreenScale] = React.useState<number>(100);
+  const [blueScale, setBlueScale] = React.useState<number>(100);
   const [brightness, setBrightness] = React.useState<number>(100);
   const [opacity, setOpacity] = React.useState<number>(100);
   const [greyscale, setGreyscale] = React.useState(false);
@@ -160,9 +159,9 @@ const Edit = () => {
       let l = frame.data.length / 4;
       
       for (let i = 0; i < l; i++) {
-        let red = Math.min(frame.data[i * 4 + 0] * (redValue / 100), 255);
-        let green = Math.min(frame.data[i * 4 + 1] * (greenValue / 100), 255);
-        let blue = Math.min(frame.data[i * 4 + 2] * (blueValue / 100), 255);
+        let red = Math.min(frame.data[i * 4 + 0] * (redScale / 100), 255);
+        let green = Math.min(frame.data[i * 4 + 1] * (greenScale / 100), 255);
+        let blue = Math.min(frame.data[i * 4 + 2] * (blueScale / 100), 255);
 
         red = Math.min(red * (brightness / 100), 255);
         green = Math.min(green * (brightness / 100), 255);
@@ -201,26 +200,26 @@ const Edit = () => {
         video.removeEventListener("play", timerCallback);
       }
     }
-  }, [selectedVideo, videoRef, canvasRef, redValue, greenValue, blueValue, brightness, opacity, greyscale]);
+  }, [selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
 
   React.useEffect(() => {
     let image = imageRef.current;
     let canvas = canvasRefImage.current;
-
+    
     if (!image || !canvas) return;
-
+    
     let context = canvas.getContext("2d");
 
     if (!context) return;
-
+    
     context.drawImage(image, 0, 0, image.width, image.height);
     let frame = context.getImageData(0, 0, image.width, image.height);
     let l = frame.data.length / 4;
     
     for (let i = 0; i < l; i++) {
-      let red = Math.min(frame.data[i * 4 + 0] * (redValue / 100), 255);
-      let green = Math.min(frame.data[i * 4 + 1] * (greenValue / 100), 255);
-      let blue = Math.min(frame.data[i * 4 + 2] * (blueValue / 100), 255);
+      let red = Math.min(frame.data[i * 4 + 0] * (redScale / 100), 255);
+      let green = Math.min(frame.data[i * 4 + 1] * (greenScale / 100), 255);
+      let blue = Math.min(frame.data[i * 4 + 2] * (blueScale / 100), 255);
 
       red = Math.min(red * (brightness / 100), 255);
       green = Math.min(green * (brightness / 100), 255);
@@ -244,13 +243,12 @@ const Edit = () => {
       }
     }
     context.putImageData(frame, 0, 0);
-    
-  }, [selectedImage, canvasRefImage, canvasRef, redValue, greenValue, blueValue, brightness, opacity, greyscale]);
+  }, [selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
 
   const reset = () => {
-    setRedValue(100);
-    setGreenValue(100);
-    setBlueValue(100);
+    setRedScale(100);
+    setGreenScale(100);
+    setBlueScale(100);
     setBrightness(100);
     setOpacity(100);
     setGreyscale(false);
@@ -311,9 +309,9 @@ const Edit = () => {
             {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
           </Grid>
           <Grid item>
-            <ColorSlider title="Red Scale" value={redValue} setValue={setRedValue} min={0} max={200} />
-            <ColorSlider title="Green Scale" value={greenValue} setValue={setGreenValue} min={0} max={200} />
-            <ColorSlider title="Blue Scale" value={blueValue} setValue={setBlueValue} min={0} max={200} />
+            <ColorSlider title="Red Scale" value={redScale} setValue={setRedScale} min={0} max={200} />
+            <ColorSlider title="Green Scale" value={greenScale} setValue={setGreenScale} min={0} max={200} />
+            <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
             <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
             <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
             <FormControlLabel
@@ -343,10 +341,7 @@ const Edit = () => {
           <Grid item>
             <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
           </Grid>
-          <Grid container justify="space-evenly">
-            <Button id="save-project" variant="contained" onClick={() => enqueueSnackbar('Project saved', { variant: 'success' })}>Save</Button>
-            <Button id="export-project" variant="contained" onClick={() => setImageExportOpen(true)}>Export</Button>
-          </Grid>
+          <Button id="export-project" variant="contained" onClick={() => setImageExportOpen(true)}>Export</Button>
         </Grid>
         }
         {selectedVideo && 
@@ -378,10 +373,7 @@ const Edit = () => {
               <PauseIcon />
             </IconButton>}
           </Grid>
-          <Grid container justify="space-evenly">
-            <Button id="save-project" variant="contained" onClick={() => enqueueSnackbar('Project saved', { variant: 'success' })}>Save</Button>
-            <Button id="export-project" variant="contained" onClick={() => setVideoExportOpen(true)}>Export</Button>
-          </Grid>
+          <Button id="export-project" variant="contained" onClick={() => setVideoExportOpen(true)}>Export</Button>
         </Grid>
         }
       </Grid>
