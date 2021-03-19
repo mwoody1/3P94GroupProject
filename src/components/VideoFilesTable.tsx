@@ -55,11 +55,12 @@ const VideoFilesTable = () => {
     if (selectedVideo) {
       let selectedVideoIndex = videoFiles.findIndex(file => file.name === selectedVideo.name);
       if (index === selectedVideoIndex) {
-        setCurrentProject({ ...currentProject, selectedVideo: undefined });
+        setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index), selectedVideo: undefined });
       }
+    } else {
+      setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
     }
     enqueueSnackbar(`${videoFiles[index].name} removed.`, { variant: 'info' });
-    setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
   }
 
   const handleSelect = (file: VideoFileMeta) => {

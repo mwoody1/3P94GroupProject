@@ -55,11 +55,12 @@ const ImageFilesTable = () => {
     if (selectedImage) {
       let selectedImageIndex = imageFiles.findIndex(file => file.name === selectedImage.name);
       if (index === selectedImageIndex) {
-        setCurrentProject({ ...currentProject, selectedImage: undefined });
+        setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index), selectedImage: undefined });
       }
+    } else {
+      setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index) });
     }
     enqueueSnackbar(`${imageFiles[index].name} removed.`, { variant: 'info' });
-    setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index) });
   }
   
   const handleSelect = (file: ImageFileMeta) => {
