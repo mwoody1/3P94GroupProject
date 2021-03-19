@@ -56,6 +56,8 @@ const ImageFilesTable = () => {
       let selectedImageIndex = imageFiles.findIndex(file => file.name === selectedImage.name);
       if (index === selectedImageIndex) {
         setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index), selectedImage: undefined });
+      } else {
+        setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index) });
       }
     } else {
       setCurrentProject({ ...currentProject, imageFiles: imageFiles.filter((_, i) => i !== index) });

@@ -56,6 +56,8 @@ const VideoFilesTable = () => {
       let selectedVideoIndex = videoFiles.findIndex(file => file.name === selectedVideo.name);
       if (index === selectedVideoIndex) {
         setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index), selectedVideo: undefined });
+      } else {
+        setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
       }
     } else {
       setCurrentProject({ ...currentProject, videoFiles: videoFiles.filter((_, i) => i !== index) });
