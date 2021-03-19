@@ -41,8 +41,8 @@ const ImageExportDialog = ({ open, setOpen, selectedImage }: Props) => {
 
   return (
     <>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="video-export-dialog">
-        <DialogTitle id="video-export-dialog">Video Export Options</DialogTitle>
+      <Dialog open={open} onClose={handleClose} aria-labelledby="image-export-dialog">
+        <DialogTitle id="image-export-dialog">Image Export Options</DialogTitle>
         <DialogContent>
           <DialogContentText>
             

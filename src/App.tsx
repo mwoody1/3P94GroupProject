@@ -16,6 +16,9 @@ const theme: ThemeOptions = {
     secondary: {
       main: '#b9f6ca'
     }
+  },
+  zIndex: {
+    tooltip: 1299 //so they don't clip through dialogs
   }
 }
 

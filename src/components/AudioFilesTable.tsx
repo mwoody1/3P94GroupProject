@@ -28,7 +28,9 @@ const useStyles = makeStyles((theme: Theme) =>
       }
     },
     actionColumn: {
-      width: 175,
+      [theme.breakpoints.up('lg')]: {
+        width: 175,
+      },
       textAlign: 'center',
       borderRight: '2px dotted grey'
     },

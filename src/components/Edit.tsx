@@ -1,5 +1,6 @@
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
+import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
@@ -8,16 +9,19 @@ import AudioFilesTable from './AudioFilesTable';
 import ColorSlider from './ColorSlider';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import PauseIcon from '@material-ui/icons/Pause';
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
 import ImageFilesTable from './ImageFilesTable';
 import VideoFilesTable from './VideoFilesTable';
 import IconButton from '@material-ui/core/IconButton';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 import VideoExportDialog from './VideoExportDialog';
 import ImageExportDialog from './ImageExportDialog';
 import Typography from '@material-ui/core/Typography';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { handlers } from '../App';
 
 interface Props {
@@ -43,6 +47,12 @@ const useStyles = makeStyles((theme: Theme) =>
       '&:hover': {
         opacity: 1
       }
+    },
+    videoSlider: {
+      marginTop: theme.spacing(3)
+    },
+    buttons: {
+      marginTop: theme.spacing(1)
     }
   })
 );
@@ -51,17 +61,30 @@ function ValueLabelComponent(props: Props) {
   const { children, open, value } = props;
 
   return (
-    <Tooltip open={open} enterTouchDelay={0} placement="bottom" arrow title={value}>
+    <Tooltip open={open} enterTouchDelay={0} placement="top" arrow title={value}>
       {children}
     </Tooltip>
   );
 }
 
-const maxMediaDisplayWidth = 1000;
-const maxMediaDisplayHeight = 500;
+const defaultXsWidth = 400;
+const defaultXsHeight = 400;
+
+const defaultSmWidth = 600;
+const defaultSmHeight = 400;
+
+const defaultMdWidth = 800;
+const defaultMdHeight = 400;
+
+const defaultLgWidth = 1000;
+const defaultLgHeight = 600;
+
+const defaultXlWidth = 1200;
+const defaultXlHeight = 800;
 
 const Edit = () => {
   const classes = useStyles();
+  const theme = useTheme();
   const { currentProject } = useProjects();
   const { selectedImage, selectedVideo } = currentProject;
   const imageRef = React.useRef<HTMLImageElement | null>(null);
@@ -80,6 +103,38 @@ const Edit = () => {
   const [rangeValue, setRangeValue] = React.useState<number[]>([0,100]);
   const [imageExportOpen, setImageExportOpen] = React.useState(false);
   const [videoExportOpen, setVideoExportOpen] = React.useState(false);
+  const [maxMediaDisplayWidth, setMaxMediaDisplayWidth] = React.useState(400);
+  const [maxMediaDisplayHeight, setMaxMediaDisplayHeight] = React.useState(400);
+  const [hideMediaTables, setHideMediaTables] = React.useState(false);
+
+  const xs = useMediaQuery(theme.breakpoints.only('xs'));
+  const sm = useMediaQuery(theme.breakpoints.only('sm'));
+  const md = useMediaQuery(theme.breakpoints.only('md'));
+  const lg = useMediaQuery(theme.breakpoints.only('lg'));
+  const xl = useMediaQuery(theme.breakpoints.only('xl'));
+
+  React.useEffect(() => {
+    if (xs) {
+      setMaxMediaDisplayWidth(defaultXsWidth);
+      setMaxMediaDisplayHeight(defaultXsHeight);
+    }
+    if (sm) {
+      setMaxMediaDisplayWidth(defaultSmWidth);
+      setMaxMediaDisplayHeight(defaultSmHeight);
+    }
+    if (md) {
+      setMaxMediaDisplayWidth(defaultMdWidth);
+      setMaxMediaDisplayHeight(defaultMdHeight);
+    }
+    if (lg) {
+      setMaxMediaDisplayWidth(defaultLgWidth);
+      setMaxMediaDisplayHeight(defaultLgHeight);
+    }
+    if (xl) {
+      setMaxMediaDisplayWidth(defaultXlWidth);
+      setMaxMediaDisplayHeight(defaultXlHeight);
+    }
+  }, [xs, sm, md, lg, xl]);
 
   React.useEffect(() => {
     if (selectedVideo) {
@@ -205,7 +260,7 @@ const Edit = () => {
         video.removeEventListener("play", timerCallback);
       }
     }
-  }, [selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
 
   React.useEffect(() => {
     let image = imageRef.current;
@@ -248,9 +303,29 @@ const Edit = () => {
       }
     }
     context.putImageData(frame, 0, 0);
-  }, [selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
 
   const reset = () => {
+    if (xs) {
+      setMaxMediaDisplayWidth(defaultXsWidth);
+      setMaxMediaDisplayHeight(defaultXsHeight);
+    }
+    if (sm) {
+      setMaxMediaDisplayWidth(defaultSmWidth);
+      setMaxMediaDisplayHeight(defaultSmHeight);
+    }
+    if (md) {
+      setMaxMediaDisplayWidth(defaultMdWidth);
+      setMaxMediaDisplayHeight(defaultMdHeight);
+    }
+    if (lg) {
+      setMaxMediaDisplayWidth(defaultLgWidth);
+      setMaxMediaDisplayHeight(defaultLgHeight);
+    }
+    if (xl) {
+      setMaxMediaDisplayWidth(defaultXlWidth);
+      setMaxMediaDisplayHeight(defaultXlHeight);
+    }
     setRedScale(100);
     setGreenScale(100);
     setBlueScale(100);
@@ -275,6 +350,19 @@ const Edit = () => {
     }
   }
 
+  const toggleMute = () => {
+    let video = videoRef.current;
+
+    if (video) {
+      if (video.muted) {
+        video.muted = false;
+      } else {
+        video.muted = true;
+      }
+    }
+  }
+
+
   const seek = (event: any) => {
     let x = event.nativeEvent.layerX;
     let video = videoRef.current;
@@ -290,6 +378,17 @@ const Edit = () => {
 
   const handleRangeChange = () => {
     setRangeValue(tempRangeValue);
+  }
+
+  const handleDimensionChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, type: 'width' | 'height') => {
+    let input = Number(event.target.value);
+
+    if (Number.isNaN(input)) return;
+
+    if (input === 0) return;
+
+    if (type === 'width') setMaxMediaDisplayWidth(input);
+    if (type === 'height') setMaxMediaDisplayHeight(input);
   }
 
   const handleGreyscaleKeyPress = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -332,88 +431,138 @@ const Edit = () => {
   return (
     <>
       <Grid container justify="space-between" spacing={2}>
-        <Grid item md={8} container direction="column">
-          <Grid item>
-            <AudioFilesTable />
-          </Grid>
-          <Grid item>
-            <ImageFilesTable />
-          </Grid>
-          <Grid item>
-            <VideoFilesTable />
-          </Grid>
-        </Grid>
-        <Grid item md={4} container alignItems="center" direction="column">
-        {(selectedImage || selectedVideo) &&
-          <> 
-            <Grid item>
-              {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
-              {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
-            </Grid>
-            <Grid item>
-              <ColorSlider title="Red Scale" value={redScale} setValue={setRedScale} min={0} max={200} />
-              <ColorSlider title="Green Scale" value={greenScale} setValue={setGreenScale} min={0} max={200} />
-              <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
-              <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
-              <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={greyscale}
-                    onKeyPress={handleGreyscaleKeyPress}
-                    onChange={handleGreyscaleChange}
-                    name="greyScale"
-                    color="secondary"
-                  />
-                }
-                label="Greyscale"
+        <Grid item container direction="column">
+          <FormControlLabel
+            control={
+              <Switch
+                checked={hideMediaTables}
+                onChange={(e, checked) => setHideMediaTables(checked)}
+                name="hideMediaTables"
               />
+            }
+            label="Hide Media Tables"
+          />
+          {!hideMediaTables &&
+          <>
+            <Grid item>
+              <AudioFilesTable />
             </Grid>
             <Grid item>
-              <Button variant="contained" onClick={reset}>Reset</Button>
+              <ImageFilesTable />
+            </Grid>
+            <Grid item>
+              <VideoFilesTable />
             </Grid>
           </>
-        }
+          }
         </Grid>
-        <Grid item container justify="center" direction="column" alignItems="center">
-        {selectedImage && 
+        <Grid item container justify="center" alignItems="center" spacing={4}>
+        {(selectedImage || selectedVideo) &&
         <>
           <Grid item>
-            <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>
+            {selectedImage && <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>}
+            {selectedVideo && 
+            <>
+              <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
+              <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
+              <Slider
+                className={classes.videoSlider}
+                value={tempRangeValue}
+                onChange={handleTempRangeChange}
+                onChangeCommitted={handleRangeChange}
+                valueLabelDisplay="on"
+                valueLabelFormat={(x: number) => {
+                  if (Number.isNaN(x)) return '00:00:00';
+                  return new Date(x * 1000).toISOString().substr(11, 8)
+                }}
+                ValueLabelComponent={ValueLabelComponent}
+                aria-labelledby="range-slider"
+                max={videoRef.current?.duration}
+              />
+              <Grid container justify="center">
+                {videoRef.current?.paused ?
+                <IconButton onClick={() => videoRef.current?.play()}>
+                  <PlayArrowIcon />
+                </IconButton>
+                :
+                <IconButton onClick={() => videoRef.current?.pause()}>
+                  <PauseIcon />
+                </IconButton>}
+                <IconButton onClick={toggleMute}>
+                  {videoRef.current?.muted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                </IconButton>
+              </Grid>
+            </>
+            }
           </Grid>
-          <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
-        </>
-        }
-        {selectedVideo && 
-        <>
           <Grid item>
-            <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
-            <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
-            <Slider
-              value={tempRangeValue}
-              onChange={handleTempRangeChange}
-              onChangeCommitted={handleRangeChange}
-              valueLabelDisplay="on"
-              valueLabelFormat={(x: number) => {
-                if (Number.isNaN(x)) return '00:00:00';
-                return new Date(x * 1000).toISOString().substr(11, 8)
-              }}
-              ValueLabelComponent={ValueLabelComponent}
-              aria-labelledby="range-slider"
-              max={videoRef.current?.duration}
-            />
+            <> 
+              <Grid item>
+                {selectedImage && <img className={classes.hide} ref={imageRef} src={selectedImage.src} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)} alt={selectedImage.name}></img>}
+                {selectedVideo && <video className={classes.hide} ref={videoRef} src={selectedVideo.src} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} loop={true} preload='auto' playsInline></video>}
+              </Grid>
+              <Grid item>
+                <div>
+                  <TextField
+                    value={maxMediaDisplayWidth}
+                    onChange={(e) => handleDimensionChange(e, 'width')}
+                    variant="filled"
+                    margin="dense"
+                    label="Width (px)"
+                    helperText={`Max: ${selectedVideo ? selectedVideo.width : selectedImage && selectedImage.width}px (original size)`}
+                    type="number"
+                  />
+                </div>
+                <div>
+                  <TextField
+                    value={maxMediaDisplayHeight}
+                    onChange={(e) => handleDimensionChange(e, 'height')}
+                    variant="filled"
+                    margin="dense"
+                    label="Height (px)"
+                    helperText={`Max: ${selectedVideo ? selectedVideo.height : selectedImage && selectedImage.height}px (original size)`}
+                    type="number"
+                  />
+                </div>
+                <ColorSlider title="Red Scale" value={redScale} setValue={setRedScale} min={0} max={200} />
+                <ColorSlider title="Green Scale" value={greenScale} setValue={setGreenScale} min={0} max={200} />
+                <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
+                <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
+                <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={greyscale}
+                      onKeyPress={handleGreyscaleKeyPress}
+                      onChange={handleGreyscaleChange}
+                      name="greyScale"
+                      color="primary"
+                    />
+                  }
+                  label="Greyscale"
+                />
+              </Grid>
+              <Grid item container className={classes.buttons} justify="space-between">
+                <Grid item>
+                  <Tooltip title="Resets the values above to their defaults" arrow>
+                    <Button variant="contained" onClick={reset}>Reset</Button>
+                  </Tooltip>
+                </Grid>
+                <Grid item>
+                  {selectedImage && 
+                  <Tooltip title="Exports this image" arrow>
+                    <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
+                  </Tooltip>
+                  }
+                  {selectedVideo && 
+                    <Tooltip title="Exports this video" arrow>
+                      <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
+                    </Tooltip>
+                  }
+                </Grid>
+              </Grid>
+            </>
           </Grid>
-          <Grid item>
-            {videoRef.current?.paused ? 
-            <IconButton onClick={() => videoRef.current?.play()}>
-              <PlayArrowIcon />
-            </IconButton>
-            :
-            <IconButton onClick={() => videoRef.current?.pause()}>
-              <PauseIcon />
-            </IconButton>}
-          </Grid>
-          <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
         </>
         }
         {!selectedImage && !selectedVideo &&
