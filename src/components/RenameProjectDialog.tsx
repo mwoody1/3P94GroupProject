@@ -62,6 +62,7 @@ const RenameProjectDialog = ({ open, setOpen }: Props) => {
             <TextField
               autoFocus
               value={projectName}
+              onFocus={(e) => e.target.select()}
               onChange={(e) => setProjectName(e.target.value)}
               variant="filled"
               margin="dense"

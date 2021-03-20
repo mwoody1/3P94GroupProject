@@ -22,7 +22,9 @@ import VideoExportDialog from './VideoExportDialog';
 import ImageExportDialog from './ImageExportDialog';
 import Typography from '@material-ui/core/Typography';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { handlers } from '../App';
+import { handleInputKeyPress } from '../App';
+import { convertHexToRGB } from '../common';
+import { useSnackbar } from 'notistack';
 
 interface Props {
   children: React.ReactElement;
@@ -53,7 +55,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     buttons: {
       marginTop: theme.spacing(1)
-    }
+    },
   })
 );
 
@@ -70,13 +72,13 @@ function ValueLabelComponent(props: Props) {
 const defaultXsWidth = 400;
 const defaultXsHeight = 400;
 
-const defaultSmWidth = 600;
+const defaultSmWidth = 550;
 const defaultSmHeight = 400;
 
-const defaultMdWidth = 800;
+const defaultMdWidth = 630;
 const defaultMdHeight = 400;
 
-const defaultLgWidth = 1000;
+const defaultLgWidth = 800;
 const defaultLgHeight = 600;
 
 const defaultXlWidth = 1200;
@@ -85,12 +87,14 @@ const defaultXlHeight = 800;
 const Edit = () => {
   const classes = useStyles();
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const { currentProject } = useProjects();
   const { selectedImage, selectedVideo } = currentProject;
   const imageRef = React.useRef<HTMLImageElement | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const canvasRefImage = React.useRef<HTMLCanvasElement | null>(null);
+  const colorRef = React.useRef<HTMLInputElement | null>(null);
   const [redScale, setRedScale] = React.useState<number>(100);
   const [greenScale, setGreenScale] = React.useState<number>(100);
   const [blueScale, setBlueScale] = React.useState<number>(100);
@@ -106,6 +110,8 @@ const Edit = () => {
   const [maxMediaDisplayWidth, setMaxMediaDisplayWidth] = React.useState(400);
   const [maxMediaDisplayHeight, setMaxMediaDisplayHeight] = React.useState(400);
   const [hideMediaTables, setHideMediaTables] = React.useState(false);
+  const [colorInputValue, setColorInputValue] = React.useState('#303030');
+  const [opacityBackground, setOpacityBackground] = React.useState([48,48,48]);
 
   const xs = useMediaQuery(theme.breakpoints.only('xs'));
   const sm = useMediaQuery(theme.breakpoints.only('sm'));
@@ -135,6 +141,14 @@ const Edit = () => {
       setMaxMediaDisplayHeight(defaultXlHeight);
     }
   }, [xs, sm, md, lg, xl]);
+
+  React.useEffect(() => {
+    if (!colorInputValue) return;
+
+    let background = convertHexToRGB(colorInputValue);
+
+    setOpacityBackground(background);
+  },[colorInputValue]);
 
   React.useEffect(() => {
     if (selectedVideo) {
@@ -227,11 +241,9 @@ const Edit = () => {
         green = Math.min(green * (brightness / 100), 255);
         blue = Math.min(blue * (brightness / 100), 255);
 
-        // background = [48,48,48]
-
-        red = Math.round(48 * (1 - (opacity / 100)) + red * (opacity / 100));
-        green = Math.round(48 * (1 - (opacity / 100)) + green * (opacity / 100));
-        blue = Math.round(48 * (1 - (opacity / 100)) + blue * (opacity / 100));
+        red = Math.round(opacityBackground[0] * (1 - (opacity / 100)) + red * (opacity / 100));
+        green = Math.round(opacityBackground[1] * (1 - (opacity / 100)) + green * (opacity / 100));
+        blue = Math.round(opacityBackground[2] * (1 - (opacity / 100)) + blue * (opacity / 100));
 
         if (greyscale) {
           let grey = (red + green + blue) / 3;
@@ -260,7 +272,7 @@ const Edit = () => {
         video.removeEventListener("play", timerCallback);
       }
     }
-  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale]);
 
   React.useEffect(() => {
     let image = imageRef.current;
@@ -285,11 +297,9 @@ const Edit = () => {
       green = Math.min(green * (brightness / 100), 255);
       blue = Math.min(blue * (brightness / 100), 255);
 
-      // background = [48,48,48]
-
-      red = Math.round(48 * (1 - (opacity / 100)) + red * (opacity / 100));
-      green = Math.round(48 * (1 - (opacity / 100)) + green * (opacity / 100));
-      blue = Math.round(48 * (1 - (opacity / 100)) + blue * (opacity / 100));
+      red = Math.round(opacityBackground[0] * (1 - (opacity / 100)) + red * (opacity / 100));
+      green = Math.round(opacityBackground[1] * (1 - (opacity / 100)) + green * (opacity / 100));
+      blue = Math.round(opacityBackground[2] * (1 - (opacity / 100)) + blue * (opacity / 100));
 
       if (greyscale) {
         let grey = (red + green + blue) / 3;
@@ -303,9 +313,10 @@ const Edit = () => {
       }
     }
     context.putImageData(frame, 0, 0);
-  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale]);
 
   const reset = () => {
+    let colorInput = colorRef.current;
     if (xs) {
       setMaxMediaDisplayWidth(defaultXsWidth);
       setMaxMediaDisplayHeight(defaultXsHeight);
@@ -326,12 +337,16 @@ const Edit = () => {
       setMaxMediaDisplayWidth(defaultXlWidth);
       setMaxMediaDisplayHeight(defaultXlHeight);
     }
+    
+    if (colorInput) colorInput.value = '#303030';
     setRedScale(100);
     setGreenScale(100);
     setBlueScale(100);
     setBrightness(100);
     setOpacity(100);
+    setOpacityBackground([48,48,48]);
     setGreyscale(false);
+    enqueueSnackbar('Values reset to defaults.');
   }
 
   const handleGreyscaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -391,43 +406,6 @@ const Edit = () => {
     if (type === 'height') setMaxMediaDisplayHeight(input);
   }
 
-  const handleGreyscaleKeyPress = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-    // triggers hotkeys manually because keybinds normally don't work for input fields
-    if (event.shiftKey) {
-      switch (event.key) {
-        case 'H':
-          handlers.SHOW_HOTKEYS();
-          return;
-        case '?':
-          handlers.SHOW_HELP();
-          return;
-        case 'N':
-          handlers.NEW_PROJECT(event.nativeEvent);
-          return;
-        case 'O':
-          handlers.OPEN_PROJECT();
-          return;
-        case 'A':
-          handlers.IMPORT_AUDIO();
-          return;
-        case 'I':
-          handlers.IMPORT_IMAGES();
-          return;
-        case 'V':
-          handlers.IMPORT_VIDEOS();
-          return;
-        case 'S':
-          handlers.SAVE_PROJECT();
-          return;
-        case 'E':
-          handlers.EXPORT_PROJECT(event.nativeEvent);
-          return;
-        default:
-          return;
-      }
-    }
-  }
-
   return (
     <>
       <Grid container justify="space-between" spacing={2}>
@@ -436,6 +414,7 @@ const Edit = () => {
             control={
               <Switch
                 checked={hideMediaTables}
+                onKeyPress={handleInputKeyPress}
                 onChange={(e, checked) => setHideMediaTables(checked)}
                 name="hideMediaTables"
               />
@@ -505,6 +484,7 @@ const Edit = () => {
                 <div>
                   <TextField
                     value={maxMediaDisplayWidth}
+                    onKeyPress={handleInputKeyPress}
                     onChange={(e) => handleDimensionChange(e, 'width')}
                     variant="filled"
                     margin="dense"
@@ -516,6 +496,7 @@ const Edit = () => {
                 <div>
                   <TextField
                     value={maxMediaDisplayHeight}
+                    onKeyPress={handleInputKeyPress}
                     onChange={(e) => handleDimensionChange(e, 'height')}
                     variant="filled"
                     margin="dense"
@@ -529,11 +510,17 @@ const Edit = () => {
                 <ColorSlider title="Blue Scale" value={blueScale} setValue={setBlueScale} min={0} max={200} />
                 <ColorSlider title="Brightness" value={brightness} setValue={setBrightness} min={0} max={200} />
                 <ColorSlider title="Opacity" value={opacity} setValue={setOpacity} min={0} max={100} />
+                <div>
+                  <label htmlFor="background-color">
+                    <Typography>Background Color</Typography>
+                  </label>
+                  <input ref={colorRef} id="background-color" type="color" defaultValue={colorInputValue} onBlur={(e) => setColorInputValue(e.target.value)}></input>
+                </div>
                 <FormControlLabel
                   control={
                     <Switch
                       checked={greyscale}
-                      onKeyPress={handleGreyscaleKeyPress}
+                      onKeyPress={handleInputKeyPress}
                       onChange={handleGreyscaleChange}
                       name="greyScale"
                       color="primary"
@@ -545,7 +532,7 @@ const Edit = () => {
               <Grid item container className={classes.buttons} justify="space-between">
                 <Grid item>
                   <Tooltip title="Resets the values above to their defaults" arrow>
-                    <Button variant="contained" onClick={reset}>Reset</Button>
+                    <Button id="reset-options-button" variant="contained" onClick={reset}>Reset</Button>
                   </Tooltip>
                 </Grid>
                 <Grid item>

@@ -27,9 +27,11 @@ const keyMap: KeyMap = {
   SHOW_HELP: { name: 'Show Help', sequence: 'shift+?', action: 'keydown' },
   NEW_PROJECT: { name: 'New Project', sequence: 'shift+n', action: 'keydown' },
   OPEN_PROJECT: { name: 'Open Project', sequence: 'shift+o', action: 'keydown' },
+  RENAME_PROJECT: { name: 'Rename Project', sequence: 'shift+r', action: 'keydown' },
   IMPORT_AUDIO: { name: 'Import Audio', sequence: 'shift+a', action: 'keydown' },
   IMPORT_IMAGES: { name: 'Import Images', sequence: 'shift+i', action: 'keydown' },
   IMPORT_VIDEOS: { name: 'Import Videos', sequence: 'shift+v', action: 'keydown' },
+  RESET_OPTIONS: { name: 'Reset Options', sequence: 'shift+t', action: 'keydown' },
   SAVE_PROJECT: { name: 'Save Project', sequence: 'shift+s', action: 'keydown' },
   EXPORT_PROJECT: { name: 'Export Project', sequence: 'shift+e', action: 'keydown' }
 }
@@ -51,6 +53,11 @@ export const handlers = {
   OPEN_PROJECT: () => {
     let openProjectButton = document.getElementById('open-project-button');
     if (openProjectButton) openProjectButton.click();
+  },
+  RENAME_PROJECT: (keyEvent?: KeyboardEvent | undefined) => {
+    let renameProjectButton = document.getElementById('rename-project-button');
+    keyEvent?.preventDefault(); // stops it from entering hotkey into autofocus field
+    if (renameProjectButton) renameProjectButton.click();
   },
   IMPORT_AUDIO: () => {
     let audioInput = document.getElementById('audio-import');
@@ -79,6 +86,15 @@ export const handlers = {
       if (homeButton) homeButton.click();
     }
   },
+  RESET_OPTIONS: () => {
+    let resetButton = document.getElementById('reset-options-button');
+    if (resetButton) {
+      resetButton.click();
+    } else {
+      let homeButton = document.getElementById('homeLink');
+      if (homeButton) homeButton.click();
+    }
+  },
   SAVE_PROJECT: () => {
     let saveButton = document.getElementById('save-project-button');
     if (saveButton) {
@@ -93,6 +109,49 @@ export const handlers = {
     } else {
       let homeButton = document.getElementById('homeLink');
       if (homeButton) homeButton.click();
+    }
+  }
+}
+
+export const handleInputKeyPress = (event: React.KeyboardEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLDivElement>) => {
+  // triggers hotkeys manually because keybinds normally don't work for input fields
+  if (event.shiftKey) {
+    switch (event.key) {
+      case 'H':
+        handlers.SHOW_HOTKEYS();
+        return;
+      case '?':
+        handlers.SHOW_HELP();
+        return;
+      case 'N':
+        handlers.NEW_PROJECT(event.nativeEvent);
+        return;
+      case 'O':
+        handlers.OPEN_PROJECT();
+        return;
+      case 'R':
+        handlers.RENAME_PROJECT(event.nativeEvent);
+        return;
+      case 'A':
+        handlers.IMPORT_AUDIO();
+        return;
+      case 'I':
+        handlers.IMPORT_IMAGES();
+        return;
+      case 'V':
+        handlers.IMPORT_VIDEOS();
+        return;
+      case 'T':
+        handlers.RESET_OPTIONS();
+        return;
+      case 'S':
+        handlers.SAVE_PROJECT();
+        return;
+      case 'E':
+        handlers.EXPORT_PROJECT(event.nativeEvent);
+        return;
+      default:
+        return;
     }
   }
 }

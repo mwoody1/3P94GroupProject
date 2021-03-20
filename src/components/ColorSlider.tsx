@@ -5,6 +5,7 @@ import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { handleInputKeyPress } from '../App';
 
 type ColorSliderProps = {
   title: string
@@ -65,6 +66,7 @@ const ColorSlider = ({ title, value, setValue, min, max }: ColorSliderProps) => 
             className={classes.input}
             value={value}
             margin="dense"
+            onKeyPress={handleInputKeyPress}
             onChange={handleInputChange}
             onBlur={handleBlur}
             endAdornment={<InputAdornment position="end">%</InputAdornment>}

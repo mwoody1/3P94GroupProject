@@ -206,7 +206,7 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
           <Typography variant="h6" noWrap className={classes.title}>
             {name}
             <Tooltip title="Rename" arrow>
-              <IconButton onClick={() => setRenameProjectDialog(true)}>
+              <IconButton id="rename-project-button" onClick={() => setRenameProjectDialog(true)}>
                 <EditIcon />
               </IconButton>
             </Tooltip>
