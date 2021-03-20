@@ -92,8 +92,8 @@ const Edit = () => {
   const { selectedImage, selectedVideo } = currentProject;
   const imageRef = React.useRef<HTMLImageElement | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
-  const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-  const canvasRefImage = React.useRef<HTMLCanvasElement | null>(null);
+  const canvasImageRef = React.useRef<HTMLCanvasElement | null>(null);
+  const canvasVideoRef = React.useRef<HTMLCanvasElement | null>(null);
   const colorRef = React.useRef<HTMLInputElement | null>(null);
   const [redScale, setRedScale] = React.useState<number>(100);
   const [greenScale, setGreenScale] = React.useState<number>(100);
@@ -112,6 +112,7 @@ const Edit = () => {
   const [hideMediaTables, setHideMediaTables] = React.useState(false);
   const [colorInputValue, setColorInputValue] = React.useState('#303030');
   const [opacityBackground, setOpacityBackground] = React.useState([48,48,48]);
+  const [trickery, setTrickery] = React.useState(0);  // hack to get previously selected images to render immediately when switching projects (not needed for videos because they auto play, forcing the render)
 
   const xs = useMediaQuery(theme.breakpoints.only('xs'));
   const sm = useMediaQuery(theme.breakpoints.only('sm'));
@@ -149,6 +150,20 @@ const Edit = () => {
 
     setOpacityBackground(background);
   },[colorInputValue]);
+
+  React.useEffect(() => {
+    let image = imageRef.current;
+
+    const listener = () => {
+      setTrickery(trickery => trickery + 1);
+    }
+
+    image?.addEventListener('load', listener);
+
+    return () => {
+      image?.removeEventListener('load', listener);
+    }
+  }, [selectedImage, imageRef]);
 
   React.useEffect(() => {
     if (selectedVideo) {
@@ -205,7 +220,7 @@ const Edit = () => {
 
   React.useEffect(() => {
     let video = videoRef.current;
-    let canvas = canvasRef.current;
+    let canvas = canvasVideoRef.current;
     
     if (!video || !canvas) return;
 
@@ -255,6 +270,7 @@ const Edit = () => {
           frame.data[i * 4 + 1] = green;
           frame.data[i * 4 + 2] = blue;
         }
+        
       }
       context.putImageData(frame, 0, 0);
   
@@ -272,11 +288,11 @@ const Edit = () => {
         video.removeEventListener("play", timerCallback);
       }
     }
-  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedVideo, videoRef, canvasRef, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedVideo, videoRef, canvasVideoRef, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale]);
 
   React.useEffect(() => {
     let image = imageRef.current;
-    let canvas = canvasRefImage.current;
+    let canvas = canvasImageRef.current;
     
     if (!image || !canvas) return;
     
@@ -311,9 +327,10 @@ const Edit = () => {
         frame.data[i * 4 + 1] = green;
         frame.data[i * 4 + 2] = blue;
       }
+      
     }
     context.putImageData(frame, 0, 0);
-  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedImage, imageRef, canvasRefImage, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale]);
+  }, [maxMediaDisplayWidth, maxMediaDisplayHeight, selectedImage, imageRef, canvasImageRef, redScale, greenScale, blueScale, brightness, opacity, opacityBackground, greyscale, trickery]);
 
   const reset = () => {
     let colorInput = colorRef.current;
@@ -346,6 +363,8 @@ const Edit = () => {
     setOpacity(100);
     setOpacityBackground([48,48,48]);
     setGreyscale(false);
+    setTempRangeValue([0,100]);
+    setRangeValue([0,100]);
     enqueueSnackbar('Values reset to defaults.');
   }
 
@@ -377,14 +396,14 @@ const Edit = () => {
     }
   }
 
-
   const seek = (event: any) => {
     let x = event.nativeEvent.layerX;
     let video = videoRef.current;
+    let canvas = canvasVideoRef.current;
 
-    if (!x || !video || Number.isNaN(video.duration)) return;
+    if (!x || !video || !canvas || Number.isNaN(video.duration)) return;
 
-    let seekTime = (x / video.width) * video.duration;
+    let seekTime = (x / canvas.width) * video.duration;
 
     if (seekTime > rangeValue[0] && seekTime < rangeValue[1]) {
       video.currentTime = seekTime;
@@ -439,10 +458,10 @@ const Edit = () => {
         {(selectedImage || selectedVideo) &&
         <>
           <Grid item>
-            {selectedImage && <canvas ref={canvasRefImage} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>}
+            {selectedImage && <canvas ref={canvasImageRef} width={Math.min(selectedImage.width, maxMediaDisplayWidth)} height={Math.min(selectedImage.height, maxMediaDisplayHeight)}></canvas>}
             {selectedVideo && 
             <>
-              <canvas className={classes.pointer} ref={canvasRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
+              <canvas className={classes.pointer} ref={canvasVideoRef} width={Math.min(selectedVideo.width, maxMediaDisplayWidth)} height={Math.min(selectedVideo.height, maxMediaDisplayHeight)} onClick={playPause}></canvas>
               <LinearProgress className={classes.progress} variant="buffer" color="secondary" value={progress} valueBuffer={buffer} onClick={(e) => seek(e)} />
               <Slider
                 className={classes.videoSlider}
