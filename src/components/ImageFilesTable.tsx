@@ -15,6 +15,7 @@ import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
 import Tooltip from '@material-ui/core/Tooltip';
+import BackdropComponent from '../common/Backdrop';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,13 +30,13 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     actionColumn: {
       [theme.breakpoints.up('lg')]: {
-        width: 175,
+        width: 185,
       },
       textAlign: 'center',
       borderRight: '2px dotted grey'
     },
     button: {
-      marginLeft: theme.spacing(1)
+      margin: theme.spacing(1)
     },
     input: {
       display: 'none'
@@ -51,6 +52,7 @@ const ImageFilesTable = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { currentProject, setCurrentProject } = useProjects();
   const { selectedImage, selectedVideo, imageFiles } = currentProject;
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleRemove = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
     event.stopPropagation();
@@ -80,24 +82,75 @@ const ImageFilesTable = () => {
   
     if (!files) return;
     
-    let newImageFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: ImageFileMeta;
-      let image = document.createElement('img');
+    setIsLoading(true);
+
+    try {
+      let newImageFiles = await Promise.all(Array.from(files).map(async file => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: ImageFileMeta;
+        let image = document.createElement('img');
+    
+        image.src = src;
+        await fileCallbackToPromise(image);
+           
+        fileMeta = { name: file.name, size: file.size, type: file.type, src, width: image.naturalWidth, height: image.naturalHeight};
+    
+        return fileMeta;
+      }));
+    
+      event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
   
-      image.src = src;
-      await fileCallbackToPromise(image);
-         
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, width: image.naturalWidth, height: image.naturalHeight};
-  
-      return fileMeta;
-    }));
-  
-    event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
-    enqueueSnackbar(`${newImageFiles.length} image file(s) added.`);
-    setCurrentProject({ ...currentProject, imageFiles: imageFiles.concat(newImageFiles) });
+      enqueueSnackbar(`${newImageFiles.length} image file(s) added.`);
+      setCurrentProject({ ...currentProject, imageFiles: imageFiles.concat(newImageFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+   
   };
   
+  const importPublicImages = async () => {
+    setIsLoading(true);
+
+    const fileNames = [ 
+      '20180915_071710.jpg',
+      '20180915_072221.jpg',
+      '20180915_103601.jpg',
+      '20180915_103613.jpg',
+      '20180916_110818.jpg',
+      '20180916_110820.jpg',
+    ];
+
+    try {
+      let files = await Promise.all(fileNames.map(async file => (await fetch(`./images/${file}`)).blob()));
+
+      if (!files) return;
+  
+      let newImageFiles = await Promise.all(Array.from(files).map(async (file, index) => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: ImageFileMeta;
+        let image = document.createElement('img');
+    
+        image.src = src;
+        await fileCallbackToPromise(image);
+           
+        fileMeta = { name: fileNames[index], size: file.size, type: file.type, src, width: image.naturalWidth, height: image.naturalHeight};
+    
+        return fileMeta;
+      }));
+  
+      enqueueSnackbar(`${newImageFiles.length} image file(s) added.`);
+      setCurrentProject({ ...currentProject, imageFiles: imageFiles.concat(newImageFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
       <input
@@ -109,23 +162,36 @@ const ImageFilesTable = () => {
         onChange={(e) => handleImageUpload(e)}
       />
       {imageFiles.length === 0 &&
-        <label htmlFor="image-import">
+        <>
+          <label htmlFor="image-import">
+            <Button
+              variant="outlined"
+              className={classes.button}
+              component="span"
+              startIcon={<ImageIcon />}>
+              Add Images
+            </Button>
+          </label>
+          OR
           <Button
+            variant="outlined"
+            onClick={importPublicImages}
             className={classes.button}
             component="span"
-            startIcon={<ImageIcon />}>
-            Add Images
+          >
+            Use Preloaded Images
           </Button>
-        </label>
+        </>
       }
       {imageFiles.length > 0 &&
-        <TableContainer className={classes.root} component={Paper}>
+        <TableContainer className={classes.root} component={Paper} elevation={24}>
           <Table stickyHeader size="small" aria-label="a dense table">
             <TableHead>
               <TableRow>
                 <TableCell className={classes.actionColumn}>
                   <label htmlFor="image-import">
                     <Button
+                      variant="outlined"
                       fullWidth
                       component="span"
                       startIcon={<ImageIcon />}>
@@ -163,6 +229,7 @@ const ImageFilesTable = () => {
           </Table>
         </TableContainer>
       }
+      <BackdropComponent open={isLoading} />
     </>
   );
 }

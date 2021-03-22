@@ -15,6 +15,7 @@ import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
 import Tooltip from '@material-ui/core/Tooltip';
+import BackdropComponent from '../common/Backdrop';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,13 +30,13 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     actionColumn: {
       [theme.breakpoints.up('lg')]: {
-        width: 175,
+        width: 185,
       },
       textAlign: 'center',
       borderRight: '2px dotted grey'
     },
     button: {
-      marginLeft: theme.spacing(1)
+      margin: theme.spacing(1)
     },
     input: {
       display: 'none'
@@ -48,34 +49,83 @@ const AudioFilesTable = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { currentProject, setCurrentProject } = useProjects();
   const { audioFiles } = currentProject;
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     let files = event.target.files;
 
     if (!files) return;
     
-    let newAudioFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: AudioFileMeta;
-      let audio = document.createElement('audio');
+    setIsLoading(true);
 
-      audio.src = src;
-      await fileCallbackToPromise(audio);
-     
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, length: audio.duration.toString()};
-      
-      return fileMeta;
-    }));
-
-    event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
-    enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
-    setCurrentProject({ ...currentProject, audioFiles: audioFiles.concat(newAudioFiles) });
+    try {
+      let newAudioFiles = await Promise.all(Array.from(files).map(async file => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: AudioFileMeta;
+        let audio = document.createElement('audio');
+  
+        audio.src = src;
+        await fileCallbackToPromise(audio);
+       
+        fileMeta = { name: file.name, size: file.size, type: file.type, src, length: audio.duration.toString()};
+        
+        return fileMeta;
+      }));
+  
+      event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
+      enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
+      setCurrentProject({ ...currentProject, audioFiles: audioFiles.concat(newAudioFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+    
   };
   
   const handleRemove = (index: number) => {
     enqueueSnackbar(`${audioFiles[index].name} removed.`, { variant: 'info' });
     setCurrentProject({ ...currentProject, audioFiles: audioFiles.filter((_, i) => i !== index) });
   }
+
+  const importPublicAudio = async () => {
+    setIsLoading(true);
+
+    const fileNames = [ 
+      'rabbit.wav',
+      'sine-440.wav',
+      'sq440.wav',
+      'thisisatest.wav'
+    ];
+
+    try {
+      let files = await Promise.all(fileNames.map(async file => (await fetch(`./audio/${file}`)).blob()));
+
+      if (!files) return;
+  
+      let newAudioFiles = await Promise.all(Array.from(files).map(async (file, index) => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: AudioFileMeta;
+        let audio = document.createElement('audio');
+  
+        audio.src = src;
+        await fileCallbackToPromise(audio);
+       
+        fileMeta = { name: fileNames[index], size: file.size, type: file.type, src, length: audio.duration.toString()};
+        
+        return fileMeta;
+      }));
+  
+      enqueueSnackbar(`${newAudioFiles.length} audio file(s) added.`);
+      setCurrentProject({ ...currentProject, audioFiles: audioFiles.concat(newAudioFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -88,23 +138,36 @@ const AudioFilesTable = () => {
         onChange={(e) => handleAudioUpload(e)}
       />
       {audioFiles.length === 0 && 
-        <label htmlFor="audio-import">
+        <>
+          <label htmlFor="audio-import">
+            <Button
+              variant="outlined"
+              className={classes.button}
+              component="span"
+              startIcon={<LibraryMusicIcon />}>
+              Add Audio
+            </Button>
+          </label>
+          OR
           <Button
+            variant="outlined"
+            onClick={importPublicAudio}
             className={classes.button}
             component="span"
-            startIcon={<LibraryMusicIcon />}>
-            Add Audio
+          >
+            Use Preloaded Audio
           </Button>
-        </label>
+        </>
       }
       {audioFiles.length > 0 &&
-      <TableContainer className={classes.root} component={Paper}>
+      <TableContainer className={classes.root} component={Paper} elevation={24}>
         <Table stickyHeader size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>
               <TableCell>
                 <label htmlFor="audio-import">
                   <Button
+                    variant="outlined"
                     component="span"
                     fullWidth
                     startIcon={<LibraryMusicIcon />}>
@@ -142,6 +205,7 @@ const AudioFilesTable = () => {
         </Table>
       </TableContainer>
       }
+      <BackdropComponent open={isLoading} />
     </>
   );
 }

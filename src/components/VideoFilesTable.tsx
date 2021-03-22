@@ -15,6 +15,7 @@ import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
 import Tooltip from '@material-ui/core/Tooltip';
+import BackdropComponent from '../common/Backdrop';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,13 +30,14 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     actionColumn: {
       [theme.breakpoints.up('lg')]: {
-        width: 175,
+        width: 185,
       },
       textAlign: 'center',
       borderRight: '2px dotted grey'
     },
     button: {
-      marginLeft: theme.spacing(1)
+      // marginLeft: theme.spacing(1)
+      margin: theme.spacing(1)
     },
     input: {
       display: 'none'
@@ -51,6 +53,7 @@ const VideoFilesTable = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { currentProject, setCurrentProject } = useProjects();
   const { selectedImage, selectedVideo, videoFiles } = currentProject;
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleRemove = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
     event.stopPropagation();
@@ -80,21 +83,67 @@ const VideoFilesTable = () => {
 
     if (!files) return;
     
-    let newVideoFiles = await Promise.all(Array.from(files).map(async file => {
-      let src = URL.createObjectURL(file);
-      let fileMeta: VideoFileMeta;
-      let video = document.createElement('video');
-      
-      video.src = src;
-      await fileCallbackToPromise(video);
-      fileMeta = { name: file.name, size: file.size, type: file.type, src, width: video.videoWidth, height: video.videoHeight, length: video.duration.toString()};
-      
-      return fileMeta;
-    }));
+    setIsLoading(true);
 
-    event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
-    enqueueSnackbar(`${newVideoFiles.length} video file(s) added.`);
-    setCurrentProject({ ...currentProject, videoFiles: videoFiles.concat(newVideoFiles) });
+    try {
+      let newVideoFiles = await Promise.all(Array.from(files).map(async file => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: VideoFileMeta;
+        let video = document.createElement('video');
+        
+        video.src = src;
+        await fileCallbackToPromise(video);
+        fileMeta = { name: file.name, size: file.size, type: file.type, src, width: video.videoWidth, height: video.videoHeight, length: video.duration.toString()};
+        
+        return fileMeta;
+      }));
+  
+      event.target.value = ''; // allows the same file(s) to be submitted back to back, otherwise no "change" occurs
+      enqueueSnackbar(`${newVideoFiles.length} video file(s) added.`);
+      setCurrentProject({ ...currentProject, videoFiles: videoFiles.concat(newVideoFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+    
+  };
+
+  const importPublicVideos = async () => {
+    setIsLoading(true);
+
+    const fileNames = [ 
+      '20180520_080908.mp4',
+      '20180915_102541.mp4'
+    ];
+
+    try {
+      let files = await Promise.all(fileNames.map(async file => (await fetch(`./videos/${file}`)).blob()));
+
+      if (!files) return;
+  
+      let newVideoFiles = await Promise.all(Array.from(files).map(async (file, index) => {
+        let src = URL.createObjectURL(file);
+        let fileMeta: VideoFileMeta;
+        let video = document.createElement('video');
+        
+        video.src = src;
+        await fileCallbackToPromise(video);
+        fileMeta = { name: fileNames[index], size: file.size, type: file.type, src, width: video.videoWidth, height: video.videoHeight, length: video.duration.toString()};
+        
+        return fileMeta;
+      }));
+  
+      
+      enqueueSnackbar(`${newVideoFiles.length} video file(s) added.`);
+      setCurrentProject({ ...currentProject, videoFiles: videoFiles.concat(newVideoFiles) });
+    } catch (err) {
+      console.warn(err);
+      enqueueSnackbar('There was a problem loading the files.', { variant: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -108,23 +157,36 @@ const VideoFilesTable = () => {
         onChange={(e) => handleVideoUpload(e)}
       />
       {videoFiles.length === 0 &&
-        <label htmlFor="video-import">
+        <>
+          <label htmlFor="video-import">
+            <Button
+              variant="outlined"
+              className={classes.button}
+              component="span"
+              startIcon={<VideoLibraryIcon />}>
+              Add Videos
+            </Button>
+          </label>
+          OR
           <Button
+            variant="outlined"
+            onClick={importPublicVideos}
             className={classes.button}
             component="span"
-            startIcon={<VideoLibraryIcon />}>
-            Add Videos
+          >
+            Use Preloaded Videos
           </Button>
-        </label>
+        </>
       }
       {videoFiles.length > 0 && 
-      <TableContainer className={classes.root} component={Paper}>
+      <TableContainer className={classes.root} component={Paper} elevation={24}>
         <Table stickyHeader size="small" aria-label="a dense table">
           <TableHead>
             <TableRow>
               <TableCell className={classes.actionColumn}>
                 <label htmlFor="video-import">
                   <Button
+                    variant="outlined"
                     fullWidth
                     component="span"
                     startIcon={<VideoLibraryIcon />}>
@@ -164,6 +226,7 @@ const VideoFilesTable = () => {
         </Table>
       </TableContainer>
       }
+      <BackdropComponent open={isLoading} />
     </>
   );
 }

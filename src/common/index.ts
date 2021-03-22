@@ -23,7 +23,7 @@ export const fileCallbackToPromise = (fileObj: HTMLAudioElement | HTMLImageEleme
       else fileObj.onloadedmetadata = resolve;
     }),
     new Promise((_, reject) => {
-      setTimeout(reject, 1000);
+      setTimeout(reject, 3000);
     }),
   ]);
 };
