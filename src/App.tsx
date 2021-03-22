@@ -25,6 +25,7 @@ const theme: ThemeOptions = {
 const keyMap: KeyMap = {
   SHOW_HOTKEYS: { name: 'Show Hotkeys', sequence: 'shift+h', action: 'keydown' },
   SHOW_HELP: { name: 'Show Help', sequence: 'shift+?', action: 'keydown' },
+  SHOW_ABOUT: { name: 'Show About', sequence: 'shift+b', action: 'keydown' },
   NEW_PROJECT: { name: 'New Project', sequence: 'shift+n', action: 'keydown' },
   OPEN_PROJECT: { name: 'Open Project', sequence: 'shift+o', action: 'keydown' },
   RENAME_PROJECT: { name: 'Rename Project', sequence: 'shift+r', action: 'keydown' },
@@ -44,6 +45,10 @@ export const handlers = {
   SHOW_HELP: () => {
     let helpButton = document.getElementById('helpLink');
     if (helpButton) helpButton.click();
+  },
+  SHOW_ABOUT: () => {
+    let aboutButton = document.getElementById('aboutLink');
+    if (aboutButton) aboutButton.click();
   },
   NEW_PROJECT: (keyEvent?: KeyboardEvent | undefined) => {
     let newProjectButton = document.getElementById('new-project-button');
@@ -122,6 +127,9 @@ export const handleInputKeyPress = (event: React.KeyboardEvent<HTMLButtonElement
         return;
       case '?':
         handlers.SHOW_HELP();
+        return;
+      case 'B':
+        handlers.SHOW_ABOUT();
         return;
       case 'N':
         handlers.NEW_PROJECT(event.nativeEvent);

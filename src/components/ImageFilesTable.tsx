@@ -115,12 +115,9 @@ const ImageFilesTable = () => {
     setIsLoading(true);
 
     const fileNames = [ 
-      '20180915_071710.jpg',
-      '20180915_072221.jpg',
-      '20180915_103601.jpg',
-      '20180915_103613.jpg',
-      '20180916_110818.jpg',
-      '20180916_110820.jpg',
+      'Mountains.jpg',
+      'Road.jpg',
+      'View.jpg',
     ];
 
     try {
@@ -179,7 +176,7 @@ const ImageFilesTable = () => {
             className={classes.button}
             component="span"
           >
-            Use Preloaded Images
+            Load Test Images (10 MB)
           </Button>
         </>
       }

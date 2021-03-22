@@ -94,8 +94,6 @@ const AudioFilesTable = () => {
 
     const fileNames = [ 
       'rabbit.wav',
-      'sine-440.wav',
-      'sq440.wav',
       'thisisatest.wav'
     ];
 
@@ -155,7 +153,7 @@ const AudioFilesTable = () => {
             className={classes.button}
             component="span"
           >
-            Use Preloaded Audio
+            Load Test Audio (200 KB)
           </Button>
         </>
       }

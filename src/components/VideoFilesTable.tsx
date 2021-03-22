@@ -114,8 +114,8 @@ const VideoFilesTable = () => {
     setIsLoading(true);
 
     const fileNames = [ 
-      '20180520_080908.mp4',
-      '20180915_102541.mp4'
+      'Dogs.mp4',
+      'NiagaraFalls.mp4'
     ];
 
     try {
@@ -174,7 +174,7 @@ const VideoFilesTable = () => {
             className={classes.button}
             component="span"
           >
-            Use Preloaded Videos
+            Load Test Videos (20 MB)
           </Button>
         </>
       }

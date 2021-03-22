@@ -24,6 +24,7 @@ import KeyboardIcon from '@material-ui/icons/Keyboard';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import HelpIcon from '@material-ui/icons/Help';
+import InfoIcon from '@material-ui/icons/Info';
 import { useProjects } from '../common/Context';
 import NewProjectDialog from './NewProjectDialog';
 import OpenProjectDialog from './OpenProjectDialog';
@@ -182,6 +183,7 @@ const SideDrawer = ({ children }: SideDrawerProps) => {
         </ListItem>
       </List>
       <Divider />
+      <ListItemLink id="aboutLink" to="/about" primary="About" icon={<InfoIcon />} onClick={() => setMobileOpen(false)} />
       <ListItemLink id="hotkeysLink" to="/hotkeys" primary="Hotkeys" icon={<KeyboardIcon />} onClick={() => setMobileOpen(false)} />
       <ListItemLink id="helpLink" to="/help" primary="Help" icon={<HelpIcon />} onClick={() => setMobileOpen(false)} />
     </>
