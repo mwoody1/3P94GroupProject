@@ -52,6 +52,8 @@ const About = () => {
           <strong>Known issues:</strong>
         </Typography>
         <ul>
+          <li><Typography>Filters: Swapping from an image to a video with filters applied will act funny (the previous image filters will persist in addition to the video ones). 
+            To fix this just reset all the filters, select any image, and then select the video (or reset the filters before switching to a video).</Typography></li>
           <li><Typography>Video Export: Safari is not supported for video exports (should work in Chrome, Firefox, Edge, and Opera).</Typography></li>
         </ul>
       </Grid>
