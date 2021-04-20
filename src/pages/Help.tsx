@@ -65,7 +65,7 @@ const Help = () => {
       <Grid item>
         <Typography variant="body1" gutterBottom>
           After uploading, the media will appear on the main page with information about each file and a preview. Image and video files can be selected from this list by clicking on them. 
-          They will appear below, along with sliders that can adjust the scales of each color (red, green, blue), brightness, opacity, background (if opacity is less than 100%) and a toggle for greyscale.
+          They will appear below, along with sliders that can adjust the scales of each color (red, green, blue), brightness, opacity, and a toggle for greyscale.
           Selected videos will also have the ability to select a clip by adjusting the two sliders under the video to the chosen start and end times.
           Videos can be started or stopped by either clicking the pause/play button beneath or by clicking on the video itself. You can seek to a certain spot in the video by clicking on the green progress bar underneath.
         </Typography>
@@ -78,7 +78,7 @@ const Help = () => {
       </Grid>
       <Grid item>
         <Typography variant="body1" gutterBottom>
-          Unfortunately this system doesn't currently allow for editing audio or adding audio to videos. At the moment audio files can only be imported, displayed, removed, and previewed in the audio files table and doesn't interact with anything else.
+          There is an option in the video export to replace the video's audio with an uploaded audio file.
         </Typography>
       </Grid>
       <Divider />
@@ -89,8 +89,19 @@ const Help = () => {
       </Grid>
       <Grid item>
         <Typography variant="body1" gutterBottom>
-          No, nothing will really be downloaded after exporting. It is possible to download an image after editing it by right clicking on it and choosing "Save image as...". This will create a png file of the image as it appears after editing.
-          Unfortunately this will not work for entire videos, but can be done for a particular frame if you pause it and follow the steps above.
+          Yes, but similarly to the imports, the exported file does not need to be downloaded because the rendering is taking place on directly on the device.
+        </Typography>
+      </Grid>
+      <Divider />
+      <Grid item>
+        <Typography variant="h5" gutterBottom>
+          How long does the export take?
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography variant="body1" gutterBottom>
+          Because all the rendering takes place in the browser itself (and not on a remote server), it will vary by device. For reference a minute long 60 fps video (1920x1080) would take approximately 6 minutes.
+          Clipping the video or reducing the dimensions will drastically speed up the rendering process.
         </Typography>
       </Grid>
     </Grid>

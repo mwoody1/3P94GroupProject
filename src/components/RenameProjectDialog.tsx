@@ -50,6 +50,12 @@ const RenameProjectDialog = ({ open, setOpen }: Props) => {
     enqueueSnackbar(`${currentProject.name} renamed to ${projectName}.`, { variant: 'info' });
   }
 
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      handleRename();
+    }
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="project-rename-dialog">
       <DialogTitle id="project-rename-dialog">Rename Project</DialogTitle>
@@ -64,6 +70,7 @@ const RenameProjectDialog = ({ open, setOpen }: Props) => {
               value={projectName}
               onFocus={(e) => e.target.select()}
               onChange={(e) => setProjectName(e.target.value)}
+              onKeyPress={handleKeyPress}
               variant="filled"
               margin="dense"
               label="Project Name"

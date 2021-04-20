@@ -47,6 +47,12 @@ const NewProjectDialog = ({ open, setOpen }: Props) => {
     enqueueSnackbar(`${projectName} created.`, { variant: 'info' });
   }
 
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      handleCreate();
+    }
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="new-project-dialog">
       <DialogTitle id="new-project-dialog">New Project Options</DialogTitle>
@@ -61,6 +67,7 @@ const NewProjectDialog = ({ open, setOpen }: Props) => {
               value={projectName}
               onFocus={(e) => e.target.select()}
               onChange={(e) => setProjectName(e.target.value)}
+              onKeyPress={handleKeyPress}
               variant="filled"
               margin="dense"
               label="Project Name"

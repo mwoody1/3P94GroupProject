@@ -1,45 +1,37 @@
 import React from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import IconButton from '@material-ui/core/IconButton';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import LibraryMusicIcon from '@material-ui/icons/LibraryMusic';
-import { AudioFileMeta, useProjects } from '../common/Context';
+import { useProjects, AudioFileMeta } from '../common/Context';
 import { fileCallbackToPromise, humanFileSize } from '../common';
 import Button from '@material-ui/core/Button';
 import { useSnackbar } from 'notistack';
-import Tooltip from '@material-ui/core/Tooltip';
 import BackdropComponent from '../common/Backdrop';
+import MUIDataTable, { MUIDataTableColumnDef, MUIDataTableOptions } from 'mui-datatables';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@material-ui/core/IconButton';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    root: {
-      margin: theme.spacing(1),
-      maxHeight: 125,
-      transition: '0.5s',
-      '&:hover' : {
-        maxHeight: 500,
-        transitionDelay: '0.3s'
-      }
-    },
     actionColumn: {
       [theme.breakpoints.up('lg')]: {
-        width: 185,
+        width: 175,
       },
       textAlign: 'center',
-      borderRight: '2px dotted grey'
+      borderBottom: '1px solid rgba(81, 81, 81, 1)',
+      position: 'sticky',
+      backgroundColor: theme.palette.background.paper,
+      zIndex: 100,
+      top: '0px'
     },
     button: {
       margin: theme.spacing(1)
     },
     input: {
       display: 'none'
+    },
+    clickable: {
+      cursor: 'pointer'
     }
   })
 );
@@ -50,6 +42,107 @@ const AudioFilesTable = () => {
   const { currentProject, setCurrentProject } = useProjects();
   const { audioFiles } = currentProject;
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const options: MUIDataTableOptions = {
+    download: false,
+    filter: false,
+    pagination: false,
+    print: false,
+    search: false,
+    viewColumns: false,
+    selectableRows: 'none',
+    fixedHeader: true,
+    tableBodyMaxHeight: '300px'
+  };
+
+  const columns: MUIDataTableColumnDef[] = [
+    {
+      name: "Delete",
+      options: {
+        filter: false,
+        sort: false,
+        empty: true,
+        customHeadRender: () => {
+          return (
+            <td key="audio-import" className={classes.actionColumn}>
+              <label htmlFor="audio-import">
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  className={classes.button}
+                  component="span"
+                  startIcon={<LibraryMusicIcon />}>
+                  Add Audio
+                </Button>
+              </label>
+            </td>
+          )
+        },
+        customBodyRenderLite: (dataIndex, rowIndex) => {
+          return (
+            <Tooltip title={`Delete ${audioFiles[rowIndex].name}`} arrow>
+              <IconButton onClick={() => handleRemove(rowIndex)}>
+                <DeleteForeverIcon />
+              </IconButton>
+            </Tooltip>
+          )
+        }
+      }
+    },
+    {
+     name: "name",
+     label: "Audio Name",
+     options: {
+      sort: true,
+      sortThirdClickReset: true,
+     }
+    },
+    {
+     name: "type",
+     label: "Type",
+     options: {
+      sort: true,
+      sortThirdClickReset: true,
+     }
+    },
+    {
+     name: "length",
+     label: "Length",
+     options: {
+      sort: true,
+      sortThirdClickReset: true,
+     }
+    },
+    {
+      name: "size",
+      label: "Size",
+      options: {
+       sort: true,
+       sortThirdClickReset: true,
+       customBodyRenderLite: (dataIndex) => {
+        return humanFileSize(audioFiles[dataIndex].size);
+       }
+      }
+     },
+     {
+      name: "preview",
+      label: "Preview",
+      options: {
+       sort: false,
+      }
+     },
+  ];
+
+  const data = audioFiles.map((audio, index) => {
+    return {
+      index,
+      name: audio.name.replace(/\.[^/.]+$/, ""),
+      type: audio.name.split('.').pop(),
+      length: new Date(Number(audio.length) * 1000).toISOString().substr(11, 8),
+      size: audio.size,
+      preview: <audio src={audio.src} controls></audio>
+    }
+  });
 
   const handleAudioUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     let files = event.target.files;
@@ -135,10 +228,11 @@ const AudioFilesTable = () => {
         type="file"
         onChange={(e) => handleAudioUpload(e)}
       />
-      {audioFiles.length === 0 && 
+      {audioFiles.length === 0 &&
         <>
           <label htmlFor="audio-import">
             <Button
+              color="secondary"
               variant="outlined"
               className={classes.button}
               component="span"
@@ -157,55 +251,17 @@ const AudioFilesTable = () => {
           </Button>
         </>
       }
-      {audioFiles.length > 0 &&
-      <TableContainer className={classes.root} component={Paper} elevation={24}>
-        <Table stickyHeader size="small" aria-label="a dense table">
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <label htmlFor="audio-import">
-                  <Button
-                    variant="outlined"
-                    component="span"
-                    fullWidth
-                    startIcon={<LibraryMusicIcon />}>
-                    Add Audio
-                  </Button>
-                </label>
-              </TableCell>
-              <TableCell>Audio Name</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell align="right">Length</TableCell>
-              <TableCell align="right">Size</TableCell>
-              <TableCell>Preview</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {audioFiles.map((file, index) => (
-              <TableRow key={index}>
-                <TableCell component="th" scope="row" className={classes.actionColumn}>
-                  <Tooltip title={`Delete ${file.name}`} arrow>
-                    <IconButton onClick={() => handleRemove(index)}>
-                      <DeleteForeverIcon />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>{file.name.replace(/\.[^/.]+$/, "")}</TableCell>
-                <TableCell>{file.name.split('.').pop()}</TableCell>
-                <TableCell align="right">{file.length}</TableCell>
-                <TableCell align="right">{humanFileSize(file.size)}</TableCell>
-                <TableCell>
-                  <audio src={file.src} controls></audio>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {audioFiles.length > 0 && 
+        <MUIDataTable
+          title=''
+          data={data}
+          columns={columns}
+          options={options}
+        />
       }
       <BackdropComponent open={isLoading} />
     </>
   );
 }
 
-export default AudioFilesTable;
+export default React.memo(AudioFilesTable);

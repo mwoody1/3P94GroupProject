@@ -24,6 +24,7 @@ type FileMeta = {
 
 export type Project = {
   name: string
+  showMediaTables: boolean
   audioFiles: AudioFileMeta[]
   imageFiles: ImageFileMeta[]
   videoFiles: VideoFileMeta[]
@@ -59,6 +60,7 @@ export type ProjectsState = {
 
 export const projectDefaults: Project = {
   name: 'New Project',
+  showMediaTables: true,
   audioFiles: [],
   imageFiles: [],
   videoFiles: []

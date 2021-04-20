@@ -8,6 +8,15 @@ import { StateContext, initialProjectsState, Project } from './common/Context';
 import { GlobalHotKeys, KeyMap } from 'react-hotkeys';
 
 const theme: ThemeOptions = {
+  // breakpoints: {
+  //   values: {
+  //     xs: 0,
+  //     sm: 600,
+  //     md: 960,
+  //     lg: 1280,
+  //     xl: 1920,
+  //   },
+  // },
   palette: {
     type: 'dark',
     primary: {
@@ -19,6 +28,13 @@ const theme: ThemeOptions = {
   },
   zIndex: {
     tooltip: 1299 //so they don't clip through dialogs
+  },
+  overrides: {
+    MuiTableRow: {
+      root: {
+        cursor: 'pointer'
+      }
+    },
   }
 }
 

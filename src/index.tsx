@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'fontsource-roboto';
+import "video.js/dist/video-js.css";
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
