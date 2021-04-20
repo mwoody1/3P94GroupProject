@@ -106,25 +106,23 @@ const Project = () => {
   const [player, setPlayer] = React.useState<VideoJsPlayer>();
   
   React.useEffect(() => {
+    if (!selectedImage) return;
+  
+    if (player) {
+      player.pause();
+    }
+  }, [player, selectedImage]);
+
+  React.useEffect(() => {
     if (!videoRef.current) return;
   
-    // if (player) {
-    //   console.log('Player already initialized.');
-    // } else {
-    //   setPlayer(videojs(videoRef.current, playerOptions, () => {
-    //     console.log("Player Ready.");
-    //   }));
-    // }
-
-    // setPlayer(videojs(videoRef.current, playerOptions, () => {
-    //   console.log("Player Ready.");
-    // }));
-
-    setPlayer(videojs(videoRef.current, playerOptions));
-
-    // return () => {
-    //   player?.dispose();
-    // };
+    if (player) {
+      console.log('Player already initialized.');
+    } else {
+      setPlayer(videojs(videoRef.current, playerOptions, () => {
+        console.log("Player Ready.");
+      }));
+    }
   }, [player, videoRef, selectedVideo]);
 
   React.useEffect(() => {
@@ -268,135 +266,113 @@ const Project = () => {
     <>
       <Grid container spacing={2}>
         <Grid item md={showMediaTables ? 6 : 12} container justify="center" spacing={2}>
-          {(selectedImage || selectedVideo) &&
-            <>
-              <Grid item xs={!showMediaTables ? 10 : 12}>
-                {selectedImage &&
-                  <>
-                    <canvas
-                      className={classes.hide}
-                      ref={canvasImageRef}
-                      width={imageExportWidth}
-                      height={imageExportHeight}
-                    >
-                    </canvas>
-                    <img 
-                      ref={imageRef} 
-                      src={selectedImage.src} 
-                      width='100%' 
-                      style={{ maxHeight: maxHeight(), objectFit: 'contain', filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }} 
-                      alt={selectedImage.name}>
-                    </img>
-                  </>
-                }
-                {selectedVideo &&
-                  <>
-                    {/* <video
-                      playsInline
-                      loop
-                      controls
-                      disablePictureInPicture
-                      ref={videoRef}
-                      controlsList="nodownload"
-                      src={selectedVideo.src}
-                      style={{ maxHeight: maxHeight(), filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }}
-                      width='100%'
-                    >
-                    </video> */}
-                    {/* <div data-vjs-player style={{ width: '100%', height: maxHeight() }}>
-                      <video
-                        className="video-js vjs-fill"
-                        ref={videoRef}
-                        style={{ filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }}
-                      />
-                    </div> */}
-                    <div data-vjs-player>
-                      <video
-                        playsInline
-                        className="video-js"
-                        ref={videoRef}
-                        style={{ filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }}
-                      />
-                    </div>
-                    <Slider
-                      className={classes.videoSlider}
-                      value={tempRangeValue}
-                      onChange={handleTempRangeChange}
-                      onChangeCommitted={handleRangeChange}
-                      step={0.01}
-                      // valueLabelDisplay="on"
-                      valueLabelFormat={(x: number, i: number) => {
-                        if (Number.isNaN(x)) return '00:00:00';
-                        if (i === 0) {
-                          return <Typography>{`Start: ${new Date(x * 1000).toISOString().substr(11, 12)}`}</Typography>;
-                        } else {
-                          return <Typography>{`End: ${new Date(x * 1000).toISOString().substr(11, 12)}`}</Typography>;
-                        }
-                      }}
-                      ValueLabelComponent={ValueLabelComponent}
-                      aria-labelledby="range-slider"
-                      // max={videoRef.current?.duration}
-                      max={Number(selectedVideo.length)}
-                    />
-                  </>
-                }
-              </Grid>
+          <>
+            <Grid item xs={!showMediaTables ? 10 : 12}>
+              <>
+                <canvas
+                  className={classes.hide}
+                  ref={canvasImageRef}
+                  width={imageExportWidth}
+                  height={imageExportHeight}
+                >
+                </canvas>
+                <img
+                  className={selectedImage ? undefined : classes.hide} 
+                  ref={imageRef} 
+                  src={selectedImage && selectedImage.src} 
+                  width='100%' 
+                  style={{ maxHeight: maxHeight(), objectFit: 'contain', filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }} 
+                  alt={selectedImage && selectedImage.name}>
+                </img>
+              </>
+              <div className={selectedVideo ? undefined : classes.hide}>
+                <div data-vjs-player>
+                  <video
+                    playsInline
+                    className="video-js"
+                    ref={videoRef}
+                    style={{ filter: `blur(${blur}px) brightness(${brightness}%) contrast(${contrast}%) grayscale(${greyscale ? 100 : 0}%) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation}%)` }}
+                  />
+                </div>
+                <Slider
+                  className={selectedVideo ? classes.videoSlider : classes.hide}
+                  value={tempRangeValue}
+                  onChange={handleTempRangeChange}
+                  onChangeCommitted={handleRangeChange}
+                  step={0.01}
+                  // valueLabelDisplay="on"
+                  valueLabelFormat={(x: number, i: number) => {
+                    if (Number.isNaN(x)) return '00:00:00';
+                    if (i === 0) {
+                      return <Typography>{`Start: ${new Date(x * 1000).toISOString().substr(11, 12)}`}</Typography>;
+                    } else {
+                      return <Typography>{`End: ${new Date(x * 1000).toISOString().substr(11, 12)}`}</Typography>;
+                    }
+                  }}
+                  ValueLabelComponent={ValueLabelComponent}
+                  aria-labelledby="range-slider"
+                  // max={videoRef.current?.duration}
+                  max={selectedVideo && Number(selectedVideo.length)}
+                />
+              </div>
+            </Grid>
+            {(selectedVideo || selectedImage) &&
               <Grid item md={!showMediaTables && 2}>
-                <>
+              <>
+                <Grid item>
+                  <CustomSlider title="Blur" value={blur} setValue={setBlur} defaultValue={defaultBlur} min={0} max={50} />
+                  <CustomSlider title="Brightness" value={brightness} setValue={setBrightness} defaultValue={defaultBrightness} min={0} max={200} adornment='%' />
+                  <CustomSlider title="Contrast" value={contrast} setValue={setContrast} defaultValue={defaultContrast} min={0} max={300} adornment='%' />
+                  <CustomSlider title="Hue" value={hue} setValue={setHue} defaultValue={defaultHue} min={0} max={360} adornment='°' />
+                  <CustomSlider title="Saturation" value={saturation} setValue={setSaturation} defaultValue={defaultSaturation} min={0} max={300} adornment='%' />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={invert}
+                        onKeyPress={handleInputKeyPress}
+                        onChange={handleInvertChange}
+                        name="invert"
+                        color="primary"
+                      />
+                    }
+                    label="Invert"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={greyscale}
+                        onKeyPress={handleInputKeyPress}
+                        onChange={handleGreyscaleChange}
+                        name="greyScale"
+                        color="primary"
+                      />
+                    }
+                    label="Greyscale"
+                  />
+                </Grid>
+                <Grid item container className={classes.buttons} justify={showMediaTables ? "space-between" : "space-around"}>
                   <Grid item>
-                    <CustomSlider title="Blur" value={blur} setValue={setBlur} defaultValue={defaultBlur} min={0} max={50} />
-                    <CustomSlider title="Brightness" value={brightness} setValue={setBrightness} defaultValue={defaultBrightness} min={0} max={200} adornment='%' />
-                    <CustomSlider title="Contrast" value={contrast} setValue={setContrast} defaultValue={defaultContrast} min={0} max={300} adornment='%' />
-                    <CustomSlider title="Hue" value={hue} setValue={setHue} defaultValue={defaultHue} min={0} max={360} adornment='°' />
-                    <CustomSlider title="Saturation" value={saturation} setValue={setSaturation} defaultValue={defaultSaturation} min={0} max={300} adornment='%' />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={invert}
-                          onKeyPress={handleInputKeyPress}
-                          onChange={handleInvertChange}
-                          name="invert"
-                          color="primary"
-                        />
-                      }
-                      label="Invert"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={greyscale}
-                          onKeyPress={handleInputKeyPress}
-                          onChange={handleGreyscaleChange}
-                          name="greyScale"
-                          color="primary"
-                        />
-                      }
-                      label="Greyscale"
-                    />
+                    <Tooltip title="Resets the values above to their defaults" arrow>
+                      <Button id="reset-options-button" variant="contained" onClick={reset}>Reset</Button>
+                    </Tooltip>
                   </Grid>
-                  <Grid item container className={classes.buttons} justify={showMediaTables ? "space-between" : "space-around"}>
-                    <Grid item>
-                      <Tooltip title="Resets the values above to their defaults" arrow>
-                        <Button id="reset-options-button" variant="contained" onClick={reset}>Reset</Button>
+                  <Grid item>
+                    {selectedImage &&
+                      <Tooltip title="Exports this image" arrow>
+                        <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
                       </Tooltip>
-                    </Grid>
-                    <Grid item>
-                      {selectedImage &&
-                        <Tooltip title="Exports this image" arrow>
-                          <Button id="export-project" variant="contained" color="primary" onClick={() => setImageExportOpen(true)}>Export</Button>
-                        </Tooltip>
-                      }
-                      {selectedVideo &&
-                        <Tooltip title="Exports this video" arrow>
-                          <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
-                        </Tooltip>
-                      }
-                    </Grid>
+                    }
+                    {selectedVideo &&
+                      <Tooltip title="Exports this video" arrow>
+                        <Button id="export-project" variant="contained" color="primary" onClick={() => setVideoExportOpen(true)}>Export</Button>
+                      </Tooltip>
+                    }
                   </Grid>
-                </>
-              </Grid>
-            </>
-          }
+                </Grid>
+              </>
+            </Grid>
+            }
+          </>
           {!selectedImage && !selectedVideo &&
             <Grid item>
               <Typography variant="h5">Select a video or image to start editing</Typography>
